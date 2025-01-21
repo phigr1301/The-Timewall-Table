@@ -49,6 +49,10 @@ addLayer("Setting", {
     tabFormat: [
         ["display-text", function() { return getPointsDisplay() }],
     ],
+    update(diff) {
+        if (player.devMode == "TimeStudy") player.devSpeed = 1000
+        else player.devSpeed = 1
+    },
 })
 
 addLayer("Information", {

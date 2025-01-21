@@ -11,10 +11,6 @@ addLayer("1layer", {
         points: new Decimal(0),// This currently does nothing, but it's required. (Might change later if you add mechanics to this layer.)
     }
     },
-    update(diff) {
-        if (player.devMode == "TimeStudy") player.devSpeed = 1000
-        else player.devSpeed=1
-    },
     color: "#fefefe",
     type: "none",
     tooltip(){return false},
@@ -38,7 +34,10 @@ addLayer("t", {
             sacr: false,
             sacrificedforfsecond: zero,
             sacrsecond: false,
-            c5Effect:one,
+            c5Effect: one,
+            designants: zero,
+            designanttotal: zero,
+            designantCD: zero,
         }
     },
     color: "#FFFFFF",
@@ -64,7 +63,16 @@ addLayer("t", {
         if (player.t.sacrificedforfsecond.gte(1200000) && !inChallenge('t', 22)) mult = mult.pow(player.t.sacrificedforfsecond.sub(1200000).div(1500000).add(1))
         if (hasChallenge("t", 22)) mult = mult.pow(1.05)
         if (hasChallenge("t", 31)) mult = mult.pow(1.35)
+        if (getBuyableAmount('t', 33).gt(0)) mult = mult.mul(buyableEffect('t', 33))
         return mult
+    },
+    designantMult() {
+        let dmult = one
+        if (hasUpgrade("t", 113)) dmult = dmult.mul(upgradeEffect("t", 113))
+        if (getBuyableAmount('t', 34).gt(0)) dmult = dmult.mul(buyableEffect('t', 34))
+        if (getBuyableAmount('t', 36).gt(0)) dmult = dmult.mul(buyableEffect('t', 36))
+        if (getBuyableAmount('t', 42).gt(0)) dmult = dmult.pow(1.15)
+        return dmult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
         if (hasUpgrade('t', 11)) return one
@@ -102,6 +110,15 @@ addLayer("t", {
         else {
             player.t.c5Effect=one
         }
+        if (player.t.designantCD.neq(0)) {
+            player.t.designantCD = player.t.designantCD.sub(diff)
+            if (player.t.designantCD.lte(0)) player.t.designantCD = zero
+            if (player.t.designantCD.eq(0)) {
+                player.t.designants = player.t.designants.add(layers.t.designantMult())
+                player.t.designanttotal = player.t.designanttotal.add(layers.t.designantMult())
+            }
+        }
+        if (player.t.designantCD.eq(0) && getBuyableAmount('t', 41).gt(0))clickClickable('t',12)
     },
     upgrades: {
         11: {
@@ -336,12 +353,13 @@ addLayer("t", {
                 let eff = player.points.add(10).log(10).mul(3)
                 if (buyableEffect('t', 11).gt(0)) eff = eff.pow(buyableEffect('t', 11).add(1))
                 if (hasUpgrade('t', 104)) eff = eff.pow(1.15)
+                if (hasUpgrade('t', 105)) eff = eff.pow(2)
                 eff = powsoftcap(eff, five, inChallenge('t', 22) ? ten : (hasChallenge('t', 21) ? two.sub(buyableEffect('t', 11)) : four))
-                eff = powsoftcap(eff, n(100), hasUpgrade('t', 104) ? two : (hasUpgrade('t', 103) ? three : four))
+                eff = powsoftcap(eff, hasUpgrade('t', 105) ? n(1000) : n(100), hasUpgrade('t', 104) ? two : (hasUpgrade('t', 103) ? three : four))
                 eff = powsoftcap(eff, n(100000), ten)
                 return eff
             },
-            effectDisplay() { let a = "x" + format(this.effect()); let b = a; if (this.effect().gte(5)) a = b + "（软上限）"; if (this.effect().gte(100)) a = b + "（2重软上限）"; if (this.effect().gte(100000)) a = b + "（3重软上限）"; return a; },
+            effectDisplay() { let a = "x" + format(this.effect()); let b = a; if (this.effect().gte(5)) a = b + "（软上限）"; if (this.effect().gte(hasUpgrade('t', 105) ? n(1000) : n(100))) a = b + "（2重软上限）"; if (this.effect().gte(100000)) a = b + "（3重软上限）"; return a; },
 
             cost: function () { return new Decimal("77") },
             unlocked() { return hasUpgrade('t', 55) }
@@ -496,10 +514,12 @@ addLayer("t", {
             description: "",
             descriptionI18N: "第二个伪·时间之神可购买的价格基于点数降低", // Second name of description for internationalization (i18n) if internationalizationMod is enabled
             effect() {
-                let eff = player.points.add(1).pow(0.4).min(2000.01)
+                let eff = player.points.add(1).pow(0.4)
+                if (!hasUpgrade('t', 111)) eff = eff.min(2000)
+                else eff=powsoftcap(eff,n(2000),four)
                 return eff
             },
-            effectDisplay() { let a = "/" + format(this.effect()); let b = a; if (this.effect().gte(2000)) a = b + "（硬上限）";  return a; },
+            effectDisplay() { let a = "/" + format(this.effect()); let b = a; if (this.effect().gte(2000)) a = b + (hasUpgrade('t', 111) ?"（软上限）":"（硬上限）");  return a; },
 
             cost: function () { return new Decimal("1e11") },
             unlocked() { return hasUpgrade('t', 91) }
@@ -560,6 +580,52 @@ addLayer("t", {
             cost: function () { return new Decimal("1e18") },
             unlocked() { return getBuyableAmount('t', 21).gte(18) && hasUpgrade('t', 103) }
         },
+        105: {
+            title: "22",
+            titleI18N: "105", // Second name of title for internationalization (i18n) if internationalizationMod is enabled
+            description: "",
+            descriptionI18N: "升级61的2重软上限延后至1e3，并在1重软上限前^2", // Second name of description for internationalization (i18n) if internationalizationMod is enabled
+            cost: function () { return new Decimal("5e18") },
+            unlocked() { return getBuyableAmount('t', 21).gte(20) && hasUpgrade('t', 104) }
+        },
+        111: {
+            title: "22",
+            titleI18N: "111", // Second name of title for internationalization (i18n) if internationalizationMod is enabled
+            description: "",
+            descriptionI18N: "去除升级92的硬上限（但改为软上限），基础点数获取+0.05", // Second name of description for internationalization (i18n) if internationalizationMod is enabled
+            cost: function () { return new Decimal("1e19") },
+            unlocked() { return hasUpgrade('t', 105) }
+        },
+        112: {
+            title: "22",
+            titleI18N: "112", // Second name of title for internationalization (i18n) if internationalizationMod is enabled
+            description: "",
+            descriptionI18N: "解锁“设计蚂蚁”页面", // Second name of description for internationalization (i18n) if internationalizationMod is enabled
+            cost: function () { return new Decimal("5e19") },
+            unlocked() { return hasUpgrade('t', 111) }
+        },
+        113: {
+            title: "22",
+            titleI18N: "113", // Second name of title for internationalization (i18n) if internationalizationMod is enabled
+            description: "",
+            descriptionI18N: "基于时间墙增加蚂蚁获取", // Second name of description for internationalization (i18n) if internationalizationMod is enabled
+            effect() {
+                let eff = player.t.points.max(10).log(10).sub(19).max(1).pow(3)
+                eff = powsoftcap(eff, n(100), four)
+                return eff
+            },
+            effectDisplay() { let a = "x" + format(this.effect()); let b = a; if (this.effect().gte(100)) a = b + "软上限"; return a; },
+            cost: function () { return new Decimal("1e20") },
+            unlocked() { return getBuyableAmount('t', 31).gt(0) }
+        },
+        114: {
+            title: "22",
+            titleI18N: "114", // Second name of title for internationalization (i18n) if internationalizationMod is enabled
+            description: "",
+            descriptionI18N: "升级“设计蚂蚁PST”的效果额外+10", // Second name of description for internationalization (i18n) if internationalizationMod is enabled
+            cost: function () { return new Decimal("2e20") },
+            unlocked() { return hasUpgrade('t', 113) && getBuyableAmount('t', 35).gt(0) }
+        },
         6001: {
             title: "22",
             titleI18N: "F-01", // Second name of title for internationalization (i18n) if internationalizationMod is enabled
@@ -607,6 +673,14 @@ addLayer("t", {
             descriptionI18N: "时间墙削弱0%", // Second name of description for internationalization (i18n) if internationalizationMod is enabled
             cost: function () { return new Decimal("0") },
             unlocked() { return hasUpgrade('t', 25) }
+        },
+        9902: {
+            title: "22",
+            titleI18N: "1919810", // Second name of title for internationalization (i18n) if internationalizationMod is enabled
+            description: "",
+            descriptionI18N: "在设计蚂蚁页面永久显示设计蚂蚁视频", // Second name of description for internationalization (i18n) if internationalizationMod is enabled
+            cost: function () { return new Decimal("0") },
+            unlocked() { return player.t.designanttotal.gte(100000) }
         },
         9991: {
             title: "Time Walls",
@@ -704,6 +778,11 @@ addLayer("t", {
             unlocked() { return getBuyableAmount('t', 11).gte(10) }
         },
     },
+    designantMaxCD() {
+        let cd = n(30)
+        if (getBuyableAmount('t', 31).gt(0)) cd = cd.sub(buyableEffect('t', 31))
+        return cd
+    },
     clickables: {
         11: {
             title() { return "<h4>献祭你的点数</h4><br>每秒献祭5%的当前点数<br>当前：已"+((player.t.sacr||player.t.sacrsecond)?"开启":"关闭") },
@@ -712,8 +791,18 @@ addLayer("t", {
                 if (player.t.sacrificedforfalse.gte(30000)) player.t.sacrsecond = !player.t.sacrsecond
                 else player.t.sacr = !player.t.sacr
             },
-            style() { return { 'background-color': "#FFFFFF", filter: "brightness(100%)", 'border-radius': "0px", height: "120px", width: "300px" } },
+            style() { return { 'background-color': "#FFFFFF", filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "300px" } },
             unlocked() { return hasUpgrade('t', 82) && (player.t.sacrificedforfalse.lt(30000) || (getBuyableAmount('t', 11).gte(10)) && player.t.sacrificedforfsecond.lt(1500000)) },
+        },
+
+        12: {
+            title() { return "<h4>设计" + (layers.t.designantMult().eq(1) ? "一" : format(layers.t.designantMult()) )+"只蚂蚁</h4><br>需要"+format(layers.t.designantMaxCD())+"秒<br>当前: "+(player.t.designantCD.eq(0)?"可以设计":("剩余"+format(player.t.designantCD)+"秒")) },
+            canClick() { return player.t.designantCD.eq(0) },
+            onClick() {
+                player.t.designantCD=layers.t.designantMaxCD()
+            },
+            style() { return { 'background-color': "#FFFFFF", filter: "brightness(100%)", 'border-radius': "15px", height: "160px", width: "240px" } },
+            unlocked() { return true },
         },
     },
     buyables: {
@@ -746,7 +835,7 @@ addLayer("t", {
                 return max
             },
             unlocked() { return player.t.sacrificedforfalse.gte(30000) },
-            style() { return { filter: "brightness(100%)", 'border-radius': "0px", height: "240px", width: "240px" } },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "240px", width: "240px" } },
         },
         12: {
             title: "解锁挑战",
@@ -755,7 +844,7 @@ addLayer("t", {
                 if (x.gte(0.9)) a = n(1e15)
                 if (x.gte(1.9)) a = n(1e35)
                 if (x.gte(2.9)) a = n("1e4004")
-                if (hasUpgrade('t', 92)) a = a.div(upgradeEffect("t", 92).min(2000))
+                if (hasUpgrade('t', 92)) a = a.div(upgradeEffect("t", 92))
                 return a
             },
             display() {
@@ -775,7 +864,7 @@ addLayer("t", {
                 return max
             },
             unlocked() { return player.t.sacrificedforfsecond.gte(1500000) },
-            style() { return { filter: "brightness(100%)", 'border-radius': "0px", height: "240px", width: "240px" } },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "240px", width: "240px" } },
         },
         21: {
             title: "减弱软上限 2",
@@ -800,7 +889,206 @@ addLayer("t", {
                 return max
             },
             unlocked() { return hasUpgrade('t',101) },
-            style() { return { filter: "brightness(100%)", 'border-radius': "0px", height: "240px", width: "240px" } },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "240px", width: "240px" } },
+        },
+        31: {
+            title: "设计蚂蚁 PST",
+            cost(x) {
+                let a = n(40).pow(x.pow(2).add(x).div(2)).mul(3)
+                if (getBuyableAmount('t', 35).gt(0)) a = a.div(buyableEffect('t', 35))
+                return a
+            },
+            display() {
+                return "基于总蚂蚁减少设计蚂蚁时间<br>价格: " + format(this.cost()) + "蚂蚁<br>效果: 设计蚂蚁时间-" + format(this.effect()) + "s<br>已购买: " + format(getBuyableAmount(this.layer, this.id)) + "/" + format(this.purchaseLimit())
+            },
+            canAfford() { return player.t.designants.gte(this.cost()) },
+            buy() {
+                player.t.designants = player.t.designants.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let eff = x.pow(0.5).mul(player.t.designanttotal.add(1).log(10).pow(1.5)).min(29.5)
+                if(hasUpgrade('t',114))eff=eff.add(10).min(29.5)
+                return eff
+            },
+            purchaseLimit() {
+                let max = n(3)
+                return max
+            },
+            unlocked() { return player.t.designanttotal.gt(0) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "120px" } },
+        },
+        32: {
+            title: "设计蚂蚁 PRS",
+            cost(x) {
+                let a = n(150).pow(x.pow(2).add(x).div(2)).mul(10)
+                if (getBuyableAmount('t', 35).gt(0)) a = a.div(buyableEffect('t', 35))
+                return a
+            },
+            display() {
+                return "基于总蚂蚁增加点数获取<br>价格: " + format(this.cost()) + "蚂蚁<br>效果: 点数获取x" + format(this.effect()) + "<br>已购买: " + format(getBuyableAmount(this.layer, this.id)) + "/" + format(this.purchaseLimit())
+            },
+            canAfford() { return player.t.designants.gte(this.cost()) },
+            buy() {
+                player.t.designants = player.t.designants.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let eff = player.t.designanttotal.add(10).log(10).pow(1.5).pow(x)
+                return eff
+            },
+            purchaseLimit() {
+                let max = n(6)
+                return max
+            },
+            unlocked() { return getBuyableAmount('t', 31).gt(0) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "120px" } },
+        },
+        33: {
+            title: "设计蚂蚁 FTR",
+            cost(x) {
+                let a = n(1000).pow(x.pow(2).add(x).div(2)).mul(20)
+                if (getBuyableAmount('t', 35).gt(0)) a = a.div(buyableEffect('t', 35))
+                return a
+            },
+            display() {
+                return "基于总蚂蚁增加时间墙获取<br>价格: " + format(this.cost()) + "蚂蚁<br>效果: 时间墙获取x" + format(this.effect()) + "<br>已购买: " + format(getBuyableAmount(this.layer, this.id)) + "/" + format(this.purchaseLimit())
+            },
+            canAfford() { return player.t.designants.gte(this.cost()) },
+            buy() {
+                player.t.designants = player.t.designants.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let eff = player.t.designanttotal.add(10).log(10).pow(x)
+                return eff
+            },
+            purchaseLimit() {
+                let max = n(4)
+                return max
+            },
+            unlocked() { return getBuyableAmount('t', 32).gt(0) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "120px" } },
+        },
+        34: {
+            title: "拉面雨",
+            cost(x) {
+                let a = n(80)
+                if (getBuyableAmount('t', 35).gt(0)) a = a.div(buyableEffect('t', 35))
+                return a
+            },
+            display() {
+                return "基于总蚂蚁增加蚂蚁获取<br>价格: " + format(this.cost()) + "蚂蚁<br>效果: 蚂蚁获取x" + format(this.effect())
+            },
+            canAfford() { return player.t.designants.gte(this.cost()) },
+            buy() {
+                player.t.designants = player.t.designants.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let eff = player.t.designanttotal.add(10).log(10).pow(x)
+                eff=eff.min("1.7977e308")
+                return eff
+            },
+            purchaseLimit() {
+                let max = one
+                return max
+            },
+            unlocked() { return getBuyableAmount('t', 33).gt(0) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "120px" } },
+        },
+        35: {
+            title: "设计蚂蚁 BYD",
+            cost(x) {
+                let a = n(100).pow(x.pow(2).add(x).div(2)).mul(50)
+                return a
+            },
+            display() {
+                return "基于购买次数减少前4个升级的价格<br>价格: " + format(this.cost()) + "蚂蚁<br>效果: 前4个升级价格/" + format(this.effect()) + "<br>已购买: " + format(getBuyableAmount(this.layer, this.id)) + "/" + format(this.purchaseLimit())
+            },
+            canAfford() { return player.t.designants.gte(this.cost()) },
+            buy() {
+                player.t.designants = player.t.designants.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let eff = n(10).pow(x.pow(0.5))
+                return eff
+            },
+            purchaseLimit() {
+                let max = n(4)
+                return max
+            },
+            unlocked() { return getBuyableAmount('t', 34).gt(0) && getBuyableAmount('t', 31).gt(1) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "120px" } },
+        },
+        36: {
+            title: "AQ",
+            cost(x) {
+                let a = n(300)
+                return a
+            },
+            display() {
+                return "基于点数增加蚂蚁获取<br>价格: " + format(this.cost()) + "蚂蚁<br>效果: 蚂蚁获取x" + format(this.effect())
+            },
+            canAfford() { return player.t.designants.gte(this.cost()) },
+            buy() {
+                player.t.designants = player.t.designants.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let eff = player.points.max(10).log(10).sub(9).max(1).pow(2.5).pow(x)
+                eff = eff.min("1e9")
+                return eff
+            },
+            purchaseLimit() {
+                let max = one
+                return max
+            },
+            unlocked() { return getBuyableAmount('t', 35).gt(0) && getBuyableAmount('t', 32).gt(1) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "120px" } },
+        },
+        41: {
+            title: "The Prestige Tree",
+            cost(x) {
+                let a = n(114514)
+                return a
+            },
+            display() {
+                return "自动设计蚂蚁<br>价格: " + format(this.cost()) + "蚂蚁"
+            },
+            canAfford() { return player.t.designants.gte(this.cost()) },
+            buy() {
+                player.t.designants = player.t.designants.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            purchaseLimit() {
+                let max = one
+                return max
+            },
+            unlocked() { return getBuyableAmount('t', 32).gt(2) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "120px" } },
+        },
+        42: {
+            title: "The Modding Tree",
+            cost(x) {
+                let a = n(1919810)
+                return a
+            },
+            display() {
+                return "单次设计蚂蚁的数量^1.15<br>价格: " + format(this.cost()) + "蚂蚁"
+            },
+            canAfford() { return player.t.designants.gte(this.cost()) },
+            buy() {
+                player.t.designants = player.t.designants.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            purchaseLimit() {
+                let max = one
+                return max
+            },
+            unlocked() { return getBuyableAmount('t', 41).gt(0) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "120px" } },
         },
     },
     hotkeys: [
@@ -853,7 +1141,7 @@ addLayer("t", {
                 name() { return 'Nothing' },
                 nameI18N() { return '伪·时间之神' },
                 content: [
-                    ["bar", "sacr1"], ["bar", "sacr2"], "blank", ["clickable", 11],"buyables",
+                    ["bar", "sacr1"], ["bar", "sacr2"], "blank", ["clickable", 11], ["row", [["buyable", 11], ["buyable", 12]]], ["row", [["buyable", 21]]],
                 ],
                 unlocked() { return hasUpgrade("t", 82) },
             },
@@ -863,6 +1151,14 @@ addLayer("t", {
                 content: [
                 ],
                 unlocked() { return hasUpgrade("t", 9991) },
+            },
+            "g": {
+                name() { return 'Nothing' },
+                nameI18N() { return '设计蚂蚁' },
+                content: [
+                    ["display-text", function () { return "你设计了" + format(player.t.designants) + "只蚂蚁（总共" + format(player.t.designanttotal) + "只蚂蚁）！" }], "blank", ["clickable", 12], ["display-text", function () { if (player.t.designantCD.eq(0) && !hasUpgrade('t', 9902)) return ""; return "<br><iframe src=\"http://player.bilibili.com/player.html?isOutside=true&aid=113544087477778&bvid=BV1rtzKYxEWt&cid=27008435804&p=1\" scrolling=\"no\" border=\"0\" frameborder=\"no\" framespacing=\"0\" allowfullscreen=\"true\"></iframe>" }], "blank", ["row", [["buyable", 31], ["buyable", 32], ["buyable", 33], ["buyable", 34], ["buyable", 35], ["buyable", 36]]], ["row", [["buyable", 41], ["buyable", 42]]],
+                ],
+                unlocked() { return hasUpgrade("t", 112) },
             }
         },
     },

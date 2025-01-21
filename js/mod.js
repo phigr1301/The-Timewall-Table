@@ -99,6 +99,7 @@ function getPointGen() {
 	if (inChallenge('t', 21)) gain = gain.sub(0.006)
 	if (hasChallenge('t', 21)) gain = gain.add(0.01)
 	if (hasUpgrade('t', 104)) gain = gain.add(0.03)
+	if (hasUpgrade('t', 111)) gain = gain.add(0.05)
 
 	if (hasUpgrade('t', 21)) gain = gain.mul(1.25)
 	if (hasUpgrade('t', 22)) gain = gain.mul(1.25)
@@ -113,6 +114,7 @@ function getPointGen() {
 	if (hasUpgrade('t', 61)) gain = gain.mul(upgradeEffect('t', 61))
 	if (hasUpgrade('t', 65)) gain = gain.mul(upgradeEffect('t', 65))
 	if (player.t.sacrificedforfalse.gte(20000) && !inChallenge('t', 22)) gain = gain.mul(player.t.sacrificedforfalse.sub(20000).div(10000).add(1))
+	if (getBuyableAmount('t', 32).gt(0)) gain = gain.mul(buyableEffect('t', 32))
 
 	if (hasUpgrade('t', 35) && gain.lt(1)) gain = gain.pow(0.9)
 	if (inChallenge('t', 11) && gain.lt(1)) gain = gain.pow(1.2)
@@ -134,7 +136,10 @@ function getPointGen() {
 
 	
 
-	if(gain.gte(100000)) gain=gain.div(100000).pow(getSoftcap1()).mul(100000)
+	if (gain.gte(100000)) gain = gain.div(100000).pow(getSoftcap1()).mul(100000)
+	if (gain.gte(1e9)) gain = gain.div(1e9).pow(getSoftcap2()).mul(1e9)
+	if (gain.gte(1e18)) gain = gain.div(1e18).pow(getSoftcap3()).mul(1e18)
+	if (gain.gte("1.7977e308")) gain = gain.div("1.7977e308").pow(getSoftcap4()).mul("1.7977e308")
 	return gain
 }
 
@@ -142,6 +147,19 @@ function getSoftcap1() {
 	let sc1 = new Decimal(0.3)
 	if (getBuyableAmount('t', 21).gt(0)) sc1 = sc1.add(buyableEffect('t', 21))
 	return sc1
+}
+
+function getSoftcap2() {
+	let sc2 = new Decimal(0.3)
+	return sc2
+}
+function getSoftcap3() {
+	let sc3 = new Decimal(0.2)
+	return sc3
+}
+function getSoftcap4() {
+	let sc4 = new Decimal(0.05)
+	return sc4
 }
 
 // You can add non-layer related variables that should to into "player" and be saved here, along with default values
@@ -160,7 +178,7 @@ var displayThings = [
 
 // You can write code here to easily display information in the top-left corner
 function displayThingsRes(){
-	let a = '点数: ' + format(player.points) + ' |  当前残局: 到达1.79e308时间墙（Beta残局*：到达1e11时间墙）<br>'; if (getPointGen().gte(100000)) a += '点数获取已达到软上限1e5，超出部分^'+format(getSoftcap1())+'!<br>'; a+='<br>*Beta残局是指非正式版本的残局，不会触发Endgame。'; return a;
+	let a = '点数: ' + format(player.points) + ' |  当前残局: 到达1.79e308时间墙（Beta残局*：到达1e7蚂蚁）<br>'; if (getPointGen().gte(100000)) a += '点数获取已达到软上限1e5，超出部分^' + format(getSoftcap1()) + '!<br>'; if (getPointGen().gte(1e9)) a += '点数获取已达到2重软上限1e9，超出部分^' + format(getSoftcap2()) + '!<br>'; if (getPointGen().gte(1e18)) a += '点数获取已达到3重软上限1e18，超出部分^' + format(getSoftcap3()) + '!<br>'; a+='<br>*Beta残局是指非正式版本的残局，不会触发Endgame。'; return a;
 }
 
 // Determines when the game "ends"
