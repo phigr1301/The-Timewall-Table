@@ -51,7 +51,10 @@ addLayer("Setting", {
     ],
     update(diff) {
         if (player.devMode == "TimeStudy") player.devSpeed = 1000
-        else player.devSpeed = 1
+        else {
+            if(player.devSpeed>1)alert("改devspeed的都是肮脏的黑客哦~")
+            player.devSpeed = 1
+        }
     },
 })
 
