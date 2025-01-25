@@ -40,6 +40,13 @@ addLayer("t", {
             designantCD: zero,
             designant2s: zero,
             designant2CD: zero,
+            dim1gen: zero,
+            dim2gen: zero,
+            dim3gen: zero,
+            dim4gen: zero,
+            dim5gen: zero,
+            dim6gen: zero,
+            dim7gen: zero,
         }
     },
     color: "#FFFFFF",
@@ -76,6 +83,8 @@ addLayer("t", {
         if (getBuyableAmount('t', 44).gt(0) && hasUpgrade('t', 161)) mult = mult.mul(buyableEffect('t', 44))
         if (hasUpgrade('t', 122) && hasUpgrade('t', 161)) mult = mult.mul(upgradeEffect('t', 122))
         if (hasUpgrade('t', 165)) mult = mult.mul(1e6)
+
+        mult=mult.mul(buyableEffect('t',61))
         return mult
     },
     designantMult() {
@@ -87,6 +96,7 @@ addLayer("t", {
         if (hasUpgrade("t", 125)) dmult = dmult.pow(upgradeEffect("t", 125))
         if (getBuyableAmount('t', 51).gt(0)) dmult = dmult.mul(buyableEffect('t', 51))
         if (hasUpgrade("t", 141)) dmult = dmult.pow(1.2)
+        if (hasUpgrade("t", 173)) dmult = dmult.mul(player.t.dim5gen.add(getBuyableAmount('t', 72))).max(1)
 
         dmult=dmult.mul(layers.t.d2Mult())
         return dmult
@@ -95,6 +105,7 @@ addLayer("t", {
         let dmult = one
         if (hasUpgrade("t", 153)) dmult = dmult.mul(upgradeEffect("t", 153))
         if (getBuyableAmount('t', 51).gt(0) && hasUpgrade("t", 154)) dmult = dmult.mul(buyableEffect('t', 51))
+        if (hasUpgrade("t", 171)) dmult = dmult.mul(player.t.dim3gen.add(getBuyableAmount('t', 63))).max(1)
         return dmult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -107,6 +118,16 @@ addLayer("t", {
         if (hasUpgrade("t", 31) && hasChallenge('t', 21)) a = zero.add(0.05)
         if (hasUpgrade("t", 31) && hasChallenge('t', 21) && hasChallenge('t', 22)) a = zero.add(0.2)
         if (hasUpgrade("t", 31) && hasChallenge('t', 21) && hasChallenge('t', 22) && hasUpgrade('t',123)) a = zero.add(2)
+        return a
+    },
+    tickspeedCal() {
+        if (!hasUpgrade('t', 172)) return one
+        let a = buyableEffect('t', 91)
+        if (hasUpgrade('t', 181)) a = a.mul(1.02)
+        if (hasUpgrade('t', 182)) a = a.mul(1.02)
+        if (hasUpgrade('t', 183)) a = a.mul(1.02)
+        if (hasUpgrade('t', 184)) a = a.mul(1.02)
+        if(hasUpgrade('t',185))a=a.mul(1.02)
         return a
     },
     update(diff) {
@@ -150,7 +171,25 @@ addLayer("t", {
                 player.t.designant2s = player.t.designant2s.add(layers.t.designant2Mult())
             }
         }
-        if (player.t.designant2CD.eq(0) && hasUpgrade('t',144)) clickClickable('t', 13)
+        if (player.t.designant2CD.eq(0) && hasUpgrade('t', 144)) clickClickable('t', 13)
+        player.t.dim1gen = player.t.dim1gen.add(buyableEffect('t', 62).mul(diff).mul(layers.t.tickspeedCal()))
+        player.t.dim2gen = player.t.dim2gen.add(buyableEffect('t', 63).mul(diff).mul(layers.t.tickspeedCal()))
+        player.t.dim3gen = player.t.dim3gen.add(buyableEffect('t', 71).mul(diff).mul(layers.t.tickspeedCal()))
+        player.t.dim4gen = player.t.dim4gen.add(buyableEffect('t', 72).mul(diff).mul(layers.t.tickspeedCal()))
+        player.t.dim5gen = player.t.dim5gen.add(buyableEffect('t', 73).mul(diff).mul(layers.t.tickspeedCal()))
+        player.t.dim6gen = player.t.dim6gen.add(buyableEffect('t', 81).mul(diff).mul(layers.t.tickspeedCal()))
+        player.t.dim7gen = player.t.dim7gen.add(buyableEffect('t', 82).mul(diff).mul(layers.t.tickspeedCal()))
+        if (hasUpgrade('t', 175)) {
+            if (layers.t.buyables[91].canAfford()) layers.t.buyables[91].buy()
+            if (layers.t.buyables[82].canAfford()) layers.t.buyables[82].buy()
+            if (layers.t.buyables[81].canAfford()) layers.t.buyables[81].buy()
+            if (layers.t.buyables[73].canAfford()) layers.t.buyables[73].buy()
+            if (layers.t.buyables[72].canAfford()) layers.t.buyables[72].buy()
+            if (layers.t.buyables[71].canAfford()) layers.t.buyables[71].buy()
+            if (layers.t.buyables[63].canAfford()) layers.t.buyables[63].buy()
+            if (layers.t.buyables[62].canAfford()) layers.t.buyables[62].buy()
+            if (layers.t.buyables[61].canAfford()) layers.t.buyables[61].buy()
+        }
     },
     upgrades: {
         11: {
@@ -272,9 +311,10 @@ addLayer("t", {
                 if (hasUpgrade('t', 75)) eff = player.points.pow(0.09)
                 if (hasUpgrade('t', 64)) eff = eff.pow(two)
                 eff = powsoftcap(eff, new Decimal(1.5), hasChallenge('t', 21) ? four : six)
+                eff = powsoftcap(eff, n(50000), four)
                 return eff
             },
-            effectDisplay() { let a = "x" + format(this.effect()); let b = a; if (this.effect().gte(1.5)) a = b + "（软上限）"; return a; },
+            effectDisplay() { let a = "x" + format(this.effect()); let b = a; if (this.effect().gte(1.5)) a = b + "（软上限）"; if (this.effect().gte(50000)) a = b + "（2重软上限）"; return a; },
             cost: function () { return new Decimal("7") },
             unlocked() { return hasUpgrade('t', 41) }
         },
@@ -290,9 +330,10 @@ addLayer("t", {
                 if (hasUpgrade('t', 75)) eff = player.points.pow(0.07)
                 if (hasUpgrade('t', 64)) eff = eff.pow(two)
                 eff = powsoftcap(eff, new Decimal(1.35), hasChallenge('t', 21) ? four : seven)
+                eff = powsoftcap(eff, n(5e6), four)
                 return eff
             },
-            effectDisplay() { let a = "x" + format(this.effect()); let b = a; if (this.effect().gte(1.35)) a = b + "（软上限）"; return a; },
+            effectDisplay() { let a = "x" + format(this.effect()); let b = a; if (this.effect().gte(1.35)) a = b + "（软上限）"; if (this.effect().gte(5e6)) a = b + "（2重软上限）"; return a; },
             cost: function () { return new Decimal("9") },
             unlocked() { return hasUpgrade('t', 42) }
         },
@@ -308,9 +349,10 @@ addLayer("t", {
                 if (hasUpgrade('t', 75)) eff = player.points.pow(0.05)
                 if (hasUpgrade('t', 64)) eff = eff.pow(two)
                 eff = powsoftcap(eff, new Decimal(1.25), hasChallenge('t', 21) ? four : eight)
+                eff = powsoftcap(eff, n(5e8), four)
                 return eff
             },
-            effectDisplay() { let a = "x" + format(this.effect()); let b = a; if (this.effect().gte(1.25)) a = b + "（软上限）"; return a; },
+            effectDisplay() { let a = "x" + format(this.effect()); let b = a; if (this.effect().gte(1.25)) a = b + "（软上限）"; if (this.effect().gte(5e8)) a = b + "（2重软上限）"; return a; },
             cost: function () { return new Decimal("11") },
             unlocked() { return hasUpgrade('t', 43) }
         },
@@ -841,7 +883,7 @@ addLayer("t", {
         },
         162: {
             title: "162",
-            description: "“减弱软上限2”可购买可以多购买10个",
+            description: "“减弱软上限2”可购买可以多购买20个",
             cost: function () { return new Decimal("1e87") },
             unlocked() { return hasUpgrade('t', 161) }
         },
@@ -862,6 +904,66 @@ addLayer("t", {
             description: "升级164效果对时间墙同时生效",
             cost: function () { return new Decimal("1e93") },
             unlocked() { return hasUpgrade('t', 164) }
+        },
+        171: {
+            title: "171",
+            description: "第三维度数量影响设计蚂蚁^2倍率",
+            cost: function () { return new Decimal("2e104") },
+            unlocked() { return hasUpgrade('t', 6001) }
+        },
+        172: {
+            title: "172",
+            description: "解锁Tickspeed升级",
+            cost: function () { return new Decimal("1e106") },
+            unlocked() { return hasUpgrade('t', 171) }
+        },
+        173: {
+            title: "173",
+            description: "第五维度数量影响设计蚂蚁倍率",
+            cost: function () { return new Decimal("1e124") },
+            unlocked() { return hasUpgrade('t', 172) }
+        },
+        174: {
+            title: "174",
+            description: "升级“设计蚂蚁PRS”的上限+1",
+            cost: function () { return new Decimal("1e140") },
+            unlocked() { return hasUpgrade('t', 173) }
+        },
+        175: {
+            title: "175",
+            description: "每秒自动买维度和Tickspeed",
+            cost: function () { return new Decimal("1e175") },
+            unlocked() { return hasUpgrade('t', 174) }
+        },
+        181: {
+            title: "181",
+            description: "Tickspeed x1.02，升级“设计蚂蚁FTR”的上限+1",
+            cost: function () { return new Decimal("1e252") },
+            unlocked() { return hasUpgrade('t', 175) }
+        },
+        182: {
+            title: "182",
+            description: "Tickspeed x1.02，升级“拉面雨”的效果^1.5",
+            cost: function () { return new Decimal("1e264") },
+            unlocked() { return hasUpgrade('t', 181) }
+        },
+        183: {
+            title: "183",
+            description: "Tickspeed x1.02，再次优化升级“AQ”的公式",
+            cost: function () { return new Decimal("1e276") },
+            unlocked() { return hasUpgrade('t', 182) }
+        },
+        184: {
+            title: "184",
+            description: "Tickspeed x1.02，点数^1.01",
+            cost: function () { return new Decimal("1e288") },
+            unlocked() { return hasUpgrade('t', 183) }
+        },
+        185: {
+            title: "185",
+            description: "Tickspeed x1.02，实际生效蚂蚁^1.02",
+            cost: function () { return new Decimal("1e300") },
+            unlocked() { return hasUpgrade('t', 184) }
         },
         6001: {
             title: "22",
@@ -1063,13 +1165,15 @@ addLayer("t", {
         if (inChallenge('t', 32)) a = a.add(1).log(10)
         if (hasChallenge('t', 32)) a = a.pow(1.5)
         if (hasUpgrade("t", 131)) a = a.pow(upgradeEffect("t", 125))
-        if(getBuyableAmount('t',56).gt(0))a=a.pow(1.14514)
-
+        if (getBuyableAmount('t', 56).gt(0)) a = a.pow(1.14514)
+        if (hasUpgrade("t", 185)) a = a.pow(1.02)
+        if(a.gte("1.7977e308"))a=a.div("1.7977e308").pow(0.5).mul("1.7977e308")
         return a
     },
     d2Mult() {
         if (!hasUpgrade('t', 142)) return one
-        let a=player.t.designant2s.pow(0.5).add(1)
+        let a = player.t.designant2s.pow(0.5).add(1)
+        if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(0.5).mul("1.7977e308")
 
         return a
     },
@@ -1140,6 +1244,16 @@ addLayer("t", {
                 let a = two.pow(x.pow(0.8)).mul("1e15")
                 if (x.gte(20)) a = two.pow(x.sub(20).pow(0.7)).mul("5e28")
                 if (x.gte(50)) a = two.pow(x.sub(50).pow(0.9)).mul("5e85")
+                if (x.gte(60)) a = n("1e280")
+                if (x.gte(61)) a = n("1e284")
+                if (x.gte(62)) a = n("1e288")
+                if (x.gte(63)) a = n("1e293")
+                if (x.gte(64)) a = n("1e298")
+                if (x.gte(65)) a = n("1e303")
+                if (x.gte(66)) a = n("1.7977e308")
+                if (x.gte(67)) a = n("1e350")
+                if (x.gte(68)) a = n("1e400")
+                if (x.gte(69)) a = n("1e500")
                 return a
             },
             display() {
@@ -1158,7 +1272,7 @@ addLayer("t", {
             purchaseLimit() {
                 let max = n(20)
                 if (getBuyableAmount('t', 46).gt(0)) max = max.add(30)
-                if (hasUpgrade('t',162)) max = max.add(10)
+                if (hasUpgrade('t',162)) max = max.add(20)
                 return max
             },
             unlocked() { return hasUpgrade('t',101) },
@@ -1215,6 +1329,7 @@ addLayer("t", {
             },
             purchaseLimit() {
                 let max = n(6)
+                if(hasUpgrade('t',174))max=seven
                 return max
             },
             unlocked() { return getBuyableAmount('t', 31).gt(0) },
@@ -1242,6 +1357,7 @@ addLayer("t", {
             },
             purchaseLimit() {
                 let max = n(4)
+                if (hasUpgrade('t', 181)) max = five
                 return max
             },
             unlocked() { return getBuyableAmount('t', 32).gt(0) },
@@ -1266,6 +1382,7 @@ addLayer("t", {
             effect(x) {
                 let eff = layers.t.getDesignantEffect().add(10).log(10).pow(x)
                 if (getBuyableAmount('t', 54).gt(0)) eff = eff.pow(1.5)
+                if (hasUpgrade('t', 182)) eff=eff.pow(1.5)
                 eff=eff.min("1.7977e308")
                 return eff
             },
@@ -1319,7 +1436,10 @@ addLayer("t", {
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
             effect(x) {
-                let eff = player.points.max(10).log(10).sub(9).max(1).pow(getBuyableAmount('t', 54).gt(0)?n(3):n(2.5)).pow(x)
+                let poweff = n(2.5)
+                if (hasUpgrade('t', 183)) poweff = poweff.add(0.5)
+                if (getBuyableAmount('t', 54).gt(0)) poweff = poweff.add(0.5)
+                let eff = player.points.max(10).log(10).sub(9).max(1).pow(poweff).pow(x)
                 eff = eff.min("1e9")
                 return eff
             },
@@ -1603,6 +1723,289 @@ addLayer("t", {
             unlocked() { return getBuyableAmount('t', 55).gt(0) },
             style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "120px" } },
         },
+        61: {
+            title: "第一时间墙维度",
+            cost(x) {
+                let a = n(1e100)
+                a = a.mul(n(100).pow(x.div(10).floor()))
+                if(a.gte("1.7977e308"))a=a.div("1.7977e308").pow(a.log(10).div(308.25)).mul("1.7977e308") //scaling
+                return a
+            },
+            display() {
+                return "时间墙获取x" + format(this.effect()) + "<br>价格: " + format(this.cost()) + "时间墙<br>已拥有: " + format(player.t.dim1gen.add(getBuyableAmount(this.layer, this.id))) + "<br>已购买: " + format(getBuyableAmount(this.layer, this.id)) + "/" + format(this.purchaseLimit())
+            },
+            canAfford() { return player.t.points.gte(this.cost()) },
+            buy() {
+                player.t.points = player.t.points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let eff = player.t.dim1gen.add(x).div(10)
+                eff = eff.mul(n(2).pow(x.div(10).floor()))
+                if (eff.gte(1e45)) eff = eff.div(1e45).pow(0.95).mul(1e45) //softcap
+                if (eff.gte(1e65)) eff = eff.div(1e65).pow(0.95).mul(1e65) //softcap2
+                if (eff.gte(1e85)) eff = eff.div(1e85).pow(0.95).mul(1e85) //softcap3
+                if (eff.gte(1e105)) eff = eff.div(1e105).pow(0.95).mul(1e105) //softcap4
+                if (eff.gte(1e125)) eff = eff.div(1e125).pow(0.94).mul(1e125) //softcap5
+                if (eff.gte(1e145)) eff = eff.div(1e145).pow(0.93).mul(1e145) //softcap6
+                if (eff.gte(1e165)) eff = eff.div(1e165).pow(0.92).mul(1e165) //softcap7
+                if (eff.gte(1e185)) eff = eff.div(1e185).pow(0.91).mul(1e185) //softcap8
+                if (eff.gte(1e205)) eff = eff.div(1e205).pow(0.9).mul(1e205) //softcap9
+                if (eff.gte(1e225)) eff = eff.div(1e225).pow(0.89).mul(1e225) //softcap10
+                if (eff.gte(1e245)) eff = eff.div(1e245).pow(0.88).mul(1e245) //softcap11
+                if (eff.gte(1e265)) eff = eff.div(1e265).pow(0.87).mul(1e265) //softcap12
+                if (eff.gte(1e285)) eff = eff.div(1e285).pow(0.86).mul(1e285) //softcap13
+                if (eff.gte("1.7977e308")) eff = eff.div("1.7977e308").pow(0.5).mul("1.7977e308") //softcap14
+                if (eff.max(10).log(10).gte(4000)) eff = ten.pow(eff.max(10).log(10).div(4000).pow(0.5).mul(4000)) //softcap15
+                eff=eff.add(1)
+                return eff
+            },
+            purchaseLimit() {
+                let max = n(1e309)
+                return max
+            },
+            unlocked() { return true },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "200px", width: "200px" } },
+        },
+        62: {
+            title: "第二时间墙维度",
+            cost(x) {
+                let a = n(1e101)
+                a = a.mul(n(2000).pow(x.div(10).floor()))
+                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(2)).mul("1.7977e308") //scaling
+                return a
+            },
+            display() {
+                return "每秒生产" + format(this.effect()) + "第一维度<br>价格: " + format(this.cost()) + "时间墙<br>已拥有: " + format(player.t.dim2gen.add(getBuyableAmount(this.layer, this.id))) + "<br>已购买: " + format(getBuyableAmount(this.layer, this.id)) + "/" + format(this.purchaseLimit())
+            },
+            canAfford() { return player.t.points.gte(this.cost()) },
+            buy() {
+                player.t.points = player.t.points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let eff = player.t.dim2gen.add(x).div(20)
+                eff = eff.mul(n(2).pow(x.div(10).floor()))
+                if (eff.gte("1.7977e308")) eff = eff.div("1.7977e308").pow(0.5).mul("1.7977e308") //softcap
+                if (eff.max(10).log(10).gte(4000)) eff = ten.pow(eff.max(10).log(10).div(4000).pow(0.5).mul(4000)) //softcap2
+                return eff
+            },
+            purchaseLimit() {
+                let max = n(1e309)
+                return max
+            },
+            unlocked() { return getBuyableAmount('t', 61).gt(9) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "200px", width: "200px" } },
+        },
+        63: {
+            title: "第三时间墙维度",
+            cost(x) {
+                let a = n(2e102)
+                a = a.mul(n(40000).pow(x.div(10).floor()))
+                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(3)).mul("1.7977e308") //scaling
+                return a
+            },
+            display() {
+                return "每秒生产" + format(this.effect()) + "第二维度<br>价格: " + format(this.cost()) + "时间墙<br>已拥有: " + format(player.t.dim3gen.add(getBuyableAmount(this.layer, this.id))) + "<br>已购买: " + format(getBuyableAmount(this.layer, this.id)) + "/" + format(this.purchaseLimit())
+            },
+            canAfford() { return player.t.points.gte(this.cost()) },
+            buy() {
+                player.t.points = player.t.points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let eff = player.t.dim3gen.add(x).div(40)
+                eff = eff.mul(n(2).pow(x.div(10).floor()))
+                if (eff.gte("1.7977e308")) eff = eff.div("1.7977e308").pow(0.5).mul("1.7977e308") //softcap
+                if (eff.max(10).log(10).gte(4000)) eff = ten.pow(eff.max(10).log(10).div(4000).pow(0.5).mul(4000)) //softcap2
+                return eff
+            },
+            purchaseLimit() {
+                let max = n(1e309)
+                return max
+            },
+            unlocked() { return getBuyableAmount('t', 62).gt(9) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "200px", width: "200px" } },
+        },
+        71: {
+            title: "第四时间墙维度",
+            cost(x) {
+                let a = n(3e104)
+                a = a.mul(n("1e6").pow(x.div(10).floor()))
+                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(4)).mul("1.7977e308") //scaling
+                return a
+            },
+            display() {
+                return "每秒生产" + format(this.effect()) + "第三维度<br>价格: " + format(this.cost()) + "时间墙<br>已拥有: " + format(player.t.dim4gen.add(getBuyableAmount(this.layer, this.id))) + "<br>已购买: " + format(getBuyableAmount(this.layer, this.id)) + "/" + format(this.purchaseLimit())
+            },
+            canAfford() { return player.t.points.gte(this.cost()) },
+            buy() {
+                player.t.points = player.t.points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let eff = player.t.dim4gen.add(x).div(80)
+                eff = eff.mul(n(2).pow(x.div(10).floor()))
+                if (eff.gte("1.7977e308")) eff = eff.div("1.7977e308").pow(0.5).mul("1.7977e308") //softcap
+                if (eff.max(10).log(10).gte(4000)) eff = ten.pow(eff.max(10).log(10).div(4000).pow(0.5).mul(4000)) //softcap2
+                return eff
+            },
+            purchaseLimit() {
+                let max = n(1e309)
+                return max
+            },
+            unlocked() { return getBuyableAmount('t', 63).gt(9) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "200px", width: "200px" } },
+        },
+        72: {
+            title: "第五时间墙维度",
+            cost(x) {
+                let a = n(1e110)
+                a = a.mul(n("3e8").pow(x.div(10).floor()))
+                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(5)).mul("1.7977e308") //scaling
+                return a
+            },
+            display() {
+                return "每秒生产" + format(this.effect()) + "第四维度<br>价格: " + format(this.cost()) + "时间墙<br>已拥有: " + format(player.t.dim5gen.add(getBuyableAmount(this.layer, this.id))) + "<br>已购买: " + format(getBuyableAmount(this.layer, this.id)) + "/" + format(this.purchaseLimit())
+            },
+            canAfford() { return player.t.points.gte(this.cost()) },
+            buy() {
+                player.t.points = player.t.points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let eff = player.t.dim5gen.add(x).div(160)
+                eff = eff.mul(n(2).pow(x.div(10).floor()))
+                if (eff.gte("1.7977e308")) eff = eff.div("1.7977e308").pow(0.5).mul("1.7977e308") //softcap
+                if (eff.max(10).log(10).gte(4000)) eff = ten.pow(eff.max(10).log(10).div(4000).pow(0.5).mul(4000)) //softcap2
+                return eff
+            },
+            purchaseLimit() {
+                let max = n(1e309)
+                return max
+            },
+            unlocked() { return getBuyableAmount('t', 71).gt(9) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "200px", width: "200px" } },
+        },
+        73: {
+            title: "第六时间墙维度",
+            cost(x) {
+                let a = n(1e122)
+                a = a.mul(n("1e11").pow(x.div(10).floor()))
+                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(6)).mul("1.7977e308") //scaling
+                return a
+            },
+            display() {
+                return "每秒生产" + format(this.effect()) + "第五维度<br>价格: " + format(this.cost()) + "时间墙<br>已拥有: " + format(player.t.dim6gen.add(getBuyableAmount(this.layer, this.id))) + "<br>已购买: " + format(getBuyableAmount(this.layer, this.id)) + "/" + format(this.purchaseLimit())
+            },
+            canAfford() { return player.t.points.gte(this.cost()) },
+            buy() {
+                player.t.points = player.t.points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let eff = player.t.dim6gen.add(x).div(320)
+                eff = eff.mul(n(2).pow(x.div(10).floor()))
+                if (eff.gte("1.7977e308")) eff = eff.div("1.7977e308").pow(0.5).mul("1.7977e308") //softcap
+                if (eff.max(10).log(10).gte(4000)) eff = ten.pow(eff.max(10).log(10).div(4000).pow(0.5).mul(4000)) //softcap2
+                return eff
+            },
+            purchaseLimit() {
+                let max = n(1e309)
+                return max
+            },
+            unlocked() { return getBuyableAmount('t', 72).gt(9) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "200px", width: "200px" } },
+        },
+        81: {
+            title: "第七时间墙维度",
+            cost(x) {
+                let a = n(1e130)
+                a = a.mul(n("1e14").pow(x.div(10).floor()))
+                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(7)).mul("1.7977e308") //scaling
+                return a
+            },
+            display() {
+                return "每秒生产" + format(this.effect()) + "第六维度<br>价格: " + format(this.cost()) + "时间墙<br>已拥有: " + format(player.t.dim7gen.add(getBuyableAmount(this.layer, this.id))) + "<br>已购买: " + format(getBuyableAmount(this.layer, this.id)) + "/" + format(this.purchaseLimit())
+            },
+            canAfford() { return player.t.points.gte(this.cost()) },
+            buy() {
+                player.t.points = player.t.points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let eff = player.t.dim7gen.add(x).div(640)
+                eff = eff.mul(n(2).pow(x.div(10).floor()))
+                if (eff.gte("1.7977e308")) eff = eff.div("1.7977e308").pow(0.5).mul("1.7977e308") //softcap
+                if (eff.max(10).log(10).gte(4000)) eff = ten.pow(eff.max(10).log(10).div(4000).pow(0.5).mul(4000)) //softcap2
+                return eff
+            },
+            purchaseLimit() {
+                let max = n(1e309)
+                return max
+            },
+            unlocked() { return getBuyableAmount('t', 73).gt(9) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "200px", width: "200px" } },
+        },
+        82: {
+            title: "第八时间墙维度",
+            cost(x) {
+                let a = n(1e145)
+                a = a.mul(n("1e18").pow(x.div(10).floor()))
+                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(8)).mul("1.7977e308") //scaling
+                return a
+            },
+            display() {
+                return "每秒生产" + format(this.effect()) + "第七维度<br>价格: " + format(this.cost()) + "时间墙<br>已拥有: " + format(getBuyableAmount(this.layer, this.id)) + "<br>已购买: " + format(getBuyableAmount(this.layer, this.id)) + "/" + format(this.purchaseLimit())
+            },
+            canAfford() { return player.t.points.gte(this.cost()) },
+            buy() {
+                player.t.points = player.t.points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let eff = x.div(1280)
+                eff = eff.mul(n(2).pow(x.div(10).floor()))
+                if (eff.gte("1.7977e308")) eff = eff.div("1.7977e308").pow(0.5).mul("1.7977e308") //softcap
+                if (eff.max(10).log(10).gte(4000)) eff = ten.pow(eff.max(10).log(10).div(4000).pow(0.5).mul(4000)) //softcap2
+                return eff
+            },
+            purchaseLimit() {
+                let max = n(1e309)
+                return max
+            },
+            unlocked() { return getBuyableAmount('t', 81).gt(9) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "200px", width: "200px" } },
+        },
+        91: {
+            title: "Tickspeed升级",
+            cost(x) {
+                let a = n(1e106)
+                a = a.mul(n(10).pow(x))
+                if(a.gte(1e200))a=a.div(1e200).pow(2).mul(1e200) //scaling
+                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(10)).mul("1.7977e308") //scaling2
+                return a
+            },
+            display() {
+                return "Tickspeed变为原来的" + format(this.effect()) + "倍<br>当前: x"+format(layers.t.tickspeedCal())+"（第一维度不受影响）<br>价格: " + format(this.cost()) + "时间墙<br>已购买: " + format(getBuyableAmount(this.layer, this.id)) + "/" + format(this.purchaseLimit())
+            },
+            canAfford() { return player.t.points.gte(this.cost()) },
+            buy() {
+                player.t.points = player.t.points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let ef=n(1.125)
+                let eff = ef.pow(x)
+                return eff
+            },
+            purchaseLimit() {
+                let max = n(1e309)
+                return max
+            },
+            unlocked() { return hasUpgrade('t',172) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "200px", width: "200px" } },
+        },
     },
     hotkeys: [
         {
@@ -1640,6 +2043,7 @@ addLayer("t", {
                 name() { return 'Nothing' },
                 nameI18N() { return '维度' },
                 content: [
+                    ["row", [["buyable", 91]]], ["row", [["buyable", 61], ["buyable", 62], ["buyable", 63]]], ["row", [["buyable", 71], ["buyable", 72], ["buyable", 73]]], ["row", [["buyable", 81], ["buyable", 82]]],
                 ],
                 unlocked() { return hasUpgrade("t", 6001) },
             },
@@ -1669,7 +2073,7 @@ addLayer("t", {
                 name() { return 'Nothing' },
                 nameI18N() { return '设计蚂蚁' },
                 content: [
-                    ["display-text", function () { return "你设计了" + format(player.t.designants) + "只蚂蚁（总共" + format(player.t.designanttotal) + "只蚂蚁，实际生效" + format(layers.t.getDesignantEffect()) + "只蚂蚁）！" }], ["display-text", function () { if (!hasUpgrade('t', 142)) return ""; return "你设计了" + format(player.t.designant2s) + "只蚂蚁^2，设计蚂蚁数量x" +format(layers.t.d2Mult())+ "！"; }], "blank", ["row", [["clickable", 12], ["clickable", 13]]], ["display-text", function () { if (player.t.designantCD.eq(0) && !hasUpgrade('t', 9902)) return ""; return "<br><iframe src=\"http://player.bilibili.com/player.html?isOutside=true&aid=113544087477778&bvid=BV1rtzKYxEWt&cid=27008435804&p=1\" scrolling=\"no\" border=\"0\" frameborder=\"no\" framespacing=\"0\" allowfullscreen=\"true\"></iframe>" }], "blank", ["row", [["buyable", 31], ["buyable", 32], ["buyable", 33], ["buyable", 34], ["buyable", 35], ["buyable", 36]]], ["row", [["buyable", 41], ["buyable", 42], ["buyable", 43], ["buyable", 44], ["buyable", 45], ["buyable", 46]]], ["row", [["buyable", 51], ["buyable", 52], ["buyable", 53], ["buyable", 54], ["buyable", 55], ["buyable", 56]]],
+                    ["display-text", function () { return "你设计了" + format(player.t.designants) + "只蚂蚁（总共" + format(player.t.designanttotal) + "只蚂蚁，实际生效" + format(layers.t.getDesignantEffect()) + "只蚂蚁" + (layers.t.getDesignantEffect().gte("1.7977e308")?"（已达软上限）":"")+"）！" }], ["display-text", function () { if (!hasUpgrade('t', 142)) return ""; return "你设计了" + format(player.t.designant2s) + "只蚂蚁^2，设计蚂蚁数量x" +format(layers.t.d2Mult())+ "！"; }], "blank", ["row", [["clickable", 12], ["clickable", 13]]], ["display-text", function () { if (player.t.designantCD.eq(0) && !hasUpgrade('t', 9902)) return ""; return "<br><iframe src=\"http://player.bilibili.com/player.html?isOutside=true&aid=113544087477778&bvid=BV1rtzKYxEWt&cid=27008435804&p=1\" scrolling=\"no\" border=\"0\" frameborder=\"no\" framespacing=\"0\" allowfullscreen=\"true\"></iframe>" }], "blank", ["row", [["buyable", 31], ["buyable", 32], ["buyable", 33], ["buyable", 34], ["buyable", 35], ["buyable", 36]]], ["row", [["buyable", 41], ["buyable", 42], ["buyable", 43], ["buyable", 44], ["buyable", 45], ["buyable", 46]]], ["row", [["buyable", 51], ["buyable", 52], ["buyable", 53], ["buyable", 54], ["buyable", 55], ["buyable", 56]]],
                 ],
                 unlocked() { return hasUpgrade("t", 112) },
             }
