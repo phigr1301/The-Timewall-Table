@@ -16,7 +16,7 @@ addLayer("1layer", {
     tooltip(){return false},
     layerShown(){return layerDisplayTotal(['t'])},// If any layer in the array is unlocked, it will returns true. Otherwise it will return false.
 	tabFormat: [
-        ["display-text", function () { return getPointsDisplay() }], "blank", ["display-text", function () { return "恭喜你找到了这里！但是并没有奖励<br>软上限前的点数获取量：" + format(player.pointgain_unsoftcapped)+"<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>0fZI0QRT0hsZ0BxX44sC0BxX0QRT0hsZ0fZI" }],
+        ["display-text", function () { return getPointsDisplay() }], "blank", ["display-text", function () { return "恭喜你找到了这里！但是并没有奖励" + "<br>软上限前的点数获取量：" + format(player.pointgain_unsoftcapped) + "<br>时间墙gainmult：" + format(layers.t.gainMult()) +"<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>0fZI0QRT0hsZ0BxX44sC0BxX0QRT0hsZ0fZI" }],
     ],
 })
 
@@ -84,7 +84,8 @@ addLayer("t", {
         if (hasUpgrade('t', 122) && hasUpgrade('t', 161)) mult = mult.mul(upgradeEffect('t', 122))
         if (hasUpgrade('t', 165)) mult = mult.mul(1e6)
 
-        mult=mult.mul(buyableEffect('t',61))
+        mult = mult.mul(buyableEffect('t', 61))
+        if (hasUpgrade('t', 205)) mult = mult.pow(1.065)
         return mult
     },
     designantMult() {
@@ -106,6 +107,11 @@ addLayer("t", {
         if (hasUpgrade("t", 153)) dmult = dmult.mul(upgradeEffect("t", 153))
         if (getBuyableAmount('t', 51).gt(0) && hasUpgrade("t", 154)) dmult = dmult.mul(buyableEffect('t', 51))
         if (hasUpgrade("t", 171)) dmult = dmult.mul(player.t.dim3gen.add(getBuyableAmount('t', 63))).max(1)
+        if (hasUpgrade("t", 192)) dmult = dmult.mul(player.t.dim7gen.add(getBuyableAmount('t', 81))).max(1)
+        if (hasUpgrade("t", 211)) dmult = dmult.pow(1.166686)
+        if (hasUpgrade("t", 212)) dmult = dmult.mul(1e18)
+        if (hasUpgrade("t", 213)) dmult = dmult.pow(1.0419)
+        if (hasUpgrade("t", 214)) dmult = dmult.pow(1.2085)
         return dmult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -431,12 +437,13 @@ addLayer("t", {
                 if (hasUpgrade('t', 104)) eff = eff.pow(1.15)
                 if (hasUpgrade('t', 105)) eff = eff.pow(2)
                 if (getBuyableAmount('t', 44).gt(0)) eff = eff.mul(buyableEffect('t', 44))
-                eff = powsoftcap(eff, five, inChallenge('t', 22) ? ten : (hasChallenge('t', 21) ? two.sub(buyableEffect('t', 11)) : four))
+                eff = powsoftcap(eff, five, inChallenge('t', 22) ? ten : (hasChallenge('t', 21) ? two.sub(buyableEffect('t', 11)).max(1) : four))
                 eff = powsoftcap(eff, hasUpgrade('t', 105) ? n(1000) : n(100), hasUpgrade('t', 104) ? two : (hasUpgrade('t', 103) ? three : four))
                 eff = powsoftcap(eff, n(100000), ten)
+                eff = powsoftcap(eff, n(1e12), ten)
                 return eff
             },
-            effectDisplay() { let a = "x" + format(this.effect()); let b = a; if (this.effect().gte(5)) a = b + "（软上限）"; if (this.effect().gte(hasUpgrade('t', 105) ? n(1000) : n(100))) a = b + "（2重软上限）"; if (this.effect().gte(100000)) a = b + "（3重软上限）"; return a; },
+            effectDisplay() { let a = "x" + format(this.effect()); let b = a; if (this.effect().gte(5)) a = b + "（软上限）"; if (this.effect().gte(hasUpgrade('t', 105) ? n(1000) : n(100))) a = b + "（2重软上限）"; if (this.effect().gte(100000)) a = b + "（3重软上限）"; if (this.effect().gte(1e12)) a = b + "（4重软上限）"; return a; },
 
             cost: function () { return new Decimal("77") },
             unlocked() { return hasUpgrade('t', 55) }
@@ -477,12 +484,13 @@ addLayer("t", {
                 if (buyableEffect('t', 11).gt(0)) eff = eff.pow(buyableEffect('t', 11).add(1))
                 if (hasUpgrade('t', 104)) eff = eff.pow(1.15)
                 if (getBuyableAmount('t', 45).gt(0)) eff = eff.mul(buyableEffect('t', 44))
-                eff = powsoftcap(eff, four, inChallenge('t', 22) ? ten : (hasChallenge('t', 21) ? two.sub(buyableEffect('t', 11)) : four))
+                eff = powsoftcap(eff, four, inChallenge('t', 22) ? ten : (hasChallenge('t', 21) ? two.sub(buyableEffect('t', 11)).max(1) : four))
                 eff = powsoftcap(eff, n(100), hasUpgrade('t', 104) ? two : (hasUpgrade('t', 103) ? three : four))
                 eff = powsoftcap(eff, n(100000), ten)
+                eff = powsoftcap(eff, n(1e12), ten)
                 return eff
             },
-            effectDisplay() { let a = "x" + format(this.effect()); let b = a; if (this.effect().gte(4)) a = b + "（软上限）"; if (this.effect().gte(100)) a = b + "（2重软上限）"; if (this.effect().gte(100000)) a = b + "（3重软上限）"; return a; },
+            effectDisplay() { let a = "x" + format(this.effect()); let b = a; if (this.effect().gte(4)) a = b + "（软上限）"; if (this.effect().gte(100)) a = b + "（2重软上限）"; if (this.effect().gte(100000)) a = b + "（3重软上限）"; if (this.effect().gte(1e12)) a = b + "（4重软上限）"; return a; },
 
             cost: function () { return new Decimal("333") },
             unlocked() { return hasUpgrade('t', 64) }
@@ -523,12 +531,13 @@ addLayer("t", {
                 if (buyableEffect('t', 11).gt(0)) eff = eff.pow(buyableEffect('t', 11).add(1))
                 if (hasUpgrade('t', 104)) eff = eff.pow(1.15)
                 if (getBuyableAmount('t', 45).gt(0)) eff = eff.mul(buyableEffect('t', 44))
-                eff = powsoftcap(eff, four, hasChallenge('t', 21) ? two.sub(buyableEffect('t', 11)) : four)
+                eff = powsoftcap(eff, four, hasChallenge('t', 21) ? two.sub(buyableEffect('t', 11)).max(1) : four)
                 eff = powsoftcap(eff, n(100), hasUpgrade('t', 104) ? two : (hasUpgrade('t', 103) ? three : four))
                 eff = powsoftcap(eff, n(100000), ten)
+                eff = powsoftcap(eff, n(1e12), ten)
                 return eff
             },
-            effectDisplay() { let a = "x" + format(this.effect()); let b = a; if (this.effect().gte(4)) a = b + "（软上限）"; if (this.effect().gte(100)) a = b + "（2重软上限）"; if (this.effect().gte(100000)) a = b + "（3重软上限）"; return a; },
+            effectDisplay() { let a = "x" + format(this.effect()); let b = a; if (this.effect().gte(4)) a = b + "（软上限）"; if (this.effect().gte(100)) a = b + "（2重软上限）"; if (this.effect().gte(100000)) a = b + "（3重软上限）"; if (this.effect().gte(1e12)) a = b + "（4重软上限）"; return a; },
             cost: function () { return new Decimal("999") },
             unlocked() { return hasUpgrade('t', 73) }
         },
@@ -965,6 +974,113 @@ addLayer("t", {
             cost: function () { return new Decimal("1e300") },
             unlocked() { return hasUpgrade('t', 184) }
         },
+        191: {
+            title: "191",
+            description: "每次Tickspeed升级的加成变为1.13倍",
+            cost: function () { return new Decimal("1.7977e308") },
+            unlocked() { return hasUpgrade('t', 185) }
+        },
+        192: {
+            title: "192",
+            description: "第七维度数量也增益设计蚂蚁^2，第八维度生产效率的底数1/1280 -> 0.06365",
+            cost: function () { return new Decimal("1e320") },
+            unlocked() { return hasUpgrade('t', 191) }
+        },
+        193: {
+            title: "193",
+            description: "实际生效蚂蚁的slog值增加0.01（软上限前）",
+            cost: function () { return new Decimal("3.33e333") },
+            unlocked() { return hasUpgrade('t', 192) }
+        },
+        194: {
+            title: "194",
+            description: "“减弱软上限”可购买的上限+5，10个之后每拥有1个额外使效果x1.2",
+            cost: function () { return new Decimal("1e335") },
+            unlocked() { return hasUpgrade('t', 193) }
+        },
+        195: {
+            title: "195",
+            description: "“减弱软上限”可购买的效果再x6.6686",
+            cost: function () { return new Decimal("1e358") },
+            unlocked() { return hasUpgrade('t', 194) }
+        },
+        201: {
+            title: "201",
+            description: "Tickspeed升级数量提升减弱软上限可购买的上限，减弱Tickspeed价格增长速率",
+            effect() {
+                let eff = getBuyableAmount('t', 91).sub(70).div(30).max(0).floor()
+                eff=eff.min(8)
+                return eff
+            },
+            effectDisplay() { let a = "+" + format(this.effect()); let b = a; if (this.effect().gte(8)) a = b + "（硬上限）";  return a; },
+            cost: function () { return new Decimal("1e370") },
+            unlocked() { return hasUpgrade('t', 195) }
+        },
+        202: {
+            title: "202",
+            description: "基于本层已购买的升级数量给第八维度一个生产速率加成",
+            effect() {
+                let eff = n(player.t.upgrades.length).max(1)
+                return eff
+            },
+            effectDisplay() { let a = "x" + format(this.effect()); let b = a; return a; },
+            cost: function () { return new Decimal("1e376") },
+            unlocked() { return hasUpgrade('t', 201) }
+        },
+        203: {
+            title: "203",
+            description: "升级202也影响第2-7维度",
+            cost: function () { return new Decimal("1e377") },
+            unlocked() { return hasUpgrade('t', 202) }
+        },
+        204: {
+            title: "204",
+            description: "点数^1.035",
+            cost: function () { return new Decimal("1e410") },
+            unlocked() { return hasUpgrade('t', 203) }
+        },
+        205: {
+            title: "205",
+            description: "时间墙^1.065，Tickspeed价格大幅降低",
+            cost: function () { return new Decimal("3e414") },
+            unlocked() { return hasUpgrade('t', 204) }
+        },
+        211: {
+            title: "211",
+            description: "设计蚂蚁^2数量^1.166686",
+            cost: function () { return new Decimal("1e450") },
+            unlocked() { return hasUpgrade('t', 205) }
+        },
+        212: {
+            title: "212",
+            description: "设计蚂蚁^2数量x1e18",
+            cost: function () { return new Decimal("1e470") },
+            unlocked() { return hasUpgrade('t', 211) }
+        },
+        213: {
+            title: "213",
+            description: "设计蚂蚁^2数量^1.0419",
+            cost: function () { return new Decimal("1e487") },
+            unlocked() { return hasUpgrade('t', 212) }
+        },
+        214: {
+            title: "214",
+            description: "设计蚂蚁^2数量^1.2085",
+            cost: function () { return new Decimal("5e503") },
+            unlocked() { return hasUpgrade('t', 213) }
+        },
+        215: {
+            title: "215",
+            description: "你可以多购买45次升级“设计蚂蚁FTR”和25次升级“设计蚂蚁BYD”",
+            cost: function () { return new Decimal("1e525") },
+            unlocked() { return hasUpgrade('t', 214) }
+        },
+        221: {
+            title: "221",
+            description: "<s>1!5!</s><br>第一维度效果^1.5",
+            cost: function () { return new Decimal("5.55e555") },
+            unlocked() { return hasUpgrade('t', 215) }
+        },
         6001: {
             title: "22",
             titleI18N: "F-01", // Second name of title for internationalization (i18n) if internationalizationMod is enabled
@@ -978,7 +1094,7 @@ addLayer("t", {
             titleI18N: "F-02", // Second name of title for internationalization (i18n) if internationalizationMod is enabled
             description: "",
             descriptionI18N: "解锁QqQe308页面", // Second name of description for internationalization (i18n) if internationalizationMod is enabled
-            cost: function () { return new Decimal("1e600") },
+            cost: function () { return new Decimal("3.23e616") },
             unlocked() { return hasUpgrade('t', 25) }
         },
         6003: {
@@ -1167,12 +1283,15 @@ addLayer("t", {
         if (hasUpgrade("t", 131)) a = a.pow(upgradeEffect("t", 125))
         if (getBuyableAmount('t', 56).gt(0)) a = a.pow(1.14514)
         if (hasUpgrade("t", 185)) a = a.pow(1.02)
-        if(a.gte("1.7977e308"))a=a.div("1.7977e308").pow(0.5).mul("1.7977e308")
+        if (hasUpgrade("t", 193)) a = n(10).tetrate(a.max(1).slog(10).add(0.01))
+        if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(0.5).mul("1.7977e308")
         return a
     },
     d2Mult() {
         if (!hasUpgrade('t', 142)) return one
         let a = player.t.designant2s.pow(0.5).add(1)
+        if (a.gte(1e100)) a = a.div(1e100).pow(0.5).mul(1e100)
+        if (a.gte(1e200)) a = a.div(1e200).pow(0.5).mul(1e200)
         if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(0.5).mul("1.7977e308")
 
         return a
@@ -1185,25 +1304,42 @@ addLayer("t", {
                 if (hasUpgrade('t', 83)) a = a.pow(0.97)
                 if (hasUpgrade('t', 84)) a = a.pow(0.98)
                 if (hasUpgrade('t', 85)) a = a.pow(0.99)
-                if(x.gte(10))a=a.tetrate(player.points.add(1).pow(10).log(10).min(1e9))
+                if (x.gte(10)) a = n("1e336")
+                if (x.gte(11)) a = n("1e340")
+                if (x.gte(12)) a = n("1e345")
+                if (x.gte(13)) a = n("1e354")
+                if (x.gte(14)) a = n("1e358")
+                if (x.gte(15)) a = n("1e370").mul(n(1e10).pow(x.sub(15)))
                 return a
             },
             display() {
-                return "减弱升级61、65、74的软上限，并在软上限前指数增长它们的效果<br>价格: " + format(this.cost()) + "点数<br>效果: -" + format(this.effect().mul(100)) + "%, ^" + format(this.effect().add(1)) +"<br>已购买: " + format(getBuyableAmount(this.layer, this.id) )+"/"+ format(this.purchaseLimit())
+                return "减弱升级61、65、74的软上限，并在软上限前指数增长它们的效果<br>价格: " + format(this.cost()) + (getBuyableAmount(this.layer, this.id).gte(10)?"时间墙":"点数")+"<br>效果: -" + format(this.effect().mul(100).min(100)) + "%, ^" + format(this.effect().add(1)) +"<br>已购买: " + format(getBuyableAmount(this.layer, this.id) )+"/"+ format(this.purchaseLimit())
             },
-            canAfford() { return player.points.gte(this.cost()) },
+            canAfford() { if (getBuyableAmount(this.layer, this.id).gte(10)) return player.t.points.gte(this.cost()); return player.points.gte(this.cost()); },
             buy() {
-                player.points = player.points.sub(this.cost())
+                if (getBuyableAmount(this.layer, this.id).gte(10)) {
+                    player.t.points = player.t.points.sub(this.cost())
+                }
+                else { player.points = player.points.sub(this.cost()) }
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
             effect(x) {
                 let eff = x.mul(0.05)
                 if (player.t.sacrificedforfsecond.gt(0) && !inChallenge('t', 22)) eff = eff.mul(player.t.sacrificedforfsecond.div(7500000).add(1))
-                if(hasUpgrade('t',91))eff=eff.mul(1.2)
+                if (hasUpgrade('t', 91)) eff = eff.mul(1.2)
+                if (x.gte(11)) eff = eff.mul(1.2)
+                if (x.gte(12)) eff = eff.mul(1.2)
+                if (x.gte(13)) eff = eff.mul(1.2)
+                if (x.gte(14)) eff = eff.mul(1.2)
+                if (x.gte(15)) eff = eff.mul(1.2)
+                if(x.gt(15))eff=eff.mul(n(1.2).pow(x.sub(15)))
+                if (hasUpgrade('t', 195)) eff = eff.mul(6.6686)
                 return eff
             },
             purchaseLimit() {
                 let max = n(10)
+                if (hasUpgrade('t', 194)) max = max.add(5)
+                if (hasUpgrade('t', 201)) max = max.add(upgradeEffect('t',201))
                 return max
             },
             unlocked() { return player.t.sacrificedforfalse.gte(30000) },
@@ -1358,6 +1494,7 @@ addLayer("t", {
             purchaseLimit() {
                 let max = n(4)
                 if (hasUpgrade('t', 181)) max = five
+                if (hasUpgrade('t', 215)) max = max.add(45)
                 return max
             },
             unlocked() { return getBuyableAmount('t', 32).gt(0) },
@@ -1414,7 +1551,8 @@ addLayer("t", {
             },
             purchaseLimit() {
                 let max = n(4)
-                if (hasChallenge('t', 32))max=n(10)
+                if (hasChallenge('t', 32)) max = n(10)
+                if (hasUpgrade('t', 215)) max = max.add(25)
                 return max
             },
             unlocked() { return getBuyableAmount('t', 34).gt(0) && getBuyableAmount('t', 31).gt(1) },
@@ -1528,7 +1666,7 @@ addLayer("t", {
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
             effect(x) {
-                let eff = n(9619482)
+                let eff = n(9628614)
                 eff = eff.min(10002184)
                 return eff
             },
@@ -1593,8 +1731,8 @@ addLayer("t", {
             },
             canAfford() { return player.t.designants.gte(this.cost()) },
             effect(x) {
-                let eff = n(12.48)
-                eff = eff.max(1).min(13.24)
+                let eff = n(12.49)
+                eff = eff.max(1).min(13.25)
                 return eff
             },
             buy() {
@@ -1620,7 +1758,7 @@ addLayer("t", {
             },
             canAfford() { return player.t.designants.gte(this.cost()) },
             effect(x) {
-                let eff = n(15.60)
+                let eff = n(15.62)
                 eff = eff.max(1).min(16.39)
                 return eff
             },
@@ -1687,7 +1825,7 @@ addLayer("t", {
                 return a
             },
             display() {
-                return "<s>when?</s><br>可购买“减弱软上限2”对点数第2重软上限的效果/2后对第3重软上限生效<br>价格: " + format(this.cost()) + "蚂蚁"
+                return "可购买“减弱软上限2”对点数第2重软上限的效果/2后对第3重软上限生效<br>价格: " + format(this.cost()) + "蚂蚁"
             },
             canAfford() { return player.t.designants.gte(this.cost()) },
             buy() {
@@ -1702,14 +1840,14 @@ addLayer("t", {
             style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "120px" } },
         },
         56: {
-            title: "Hello (BPM) 2085",
+            title: "TECHNOPOLIS 2085",
             cost(x) {
                 let a = n(2e25)
                 if (hasUpgrade('t', 133)) a = a.div(buyableEffect('t', 35))
                 return a
             },
             display() {
-                return "<s>会赢吗？</s><br>基础点数获取+2085，实际生效蚂蚁^1.14514，削弱升级134的软上限<br>价格: " + format(this.cost()) + "蚂蚁"
+                return "基础点数获取+2085，实际生效蚂蚁^1.14514，削弱升级134的软上限<br>价格: " + format(this.cost()) + "蚂蚁"
             },
             canAfford() { return player.t.designants.gte(this.cost()) },
             buy() {
@@ -1742,6 +1880,7 @@ addLayer("t", {
             effect(x) {
                 let eff = player.t.dim1gen.add(x).div(10)
                 eff = eff.mul(n(2).pow(x.div(10).floor()))
+                if(hasUpgrade('t',221))eff=eff.pow(1.5)
                 if (eff.gte(1e45)) eff = eff.div(1e45).pow(0.95).mul(1e45) //softcap
                 if (eff.gte(1e65)) eff = eff.div(1e65).pow(0.95).mul(1e65) //softcap2
                 if (eff.gte(1e85)) eff = eff.div(1e85).pow(0.95).mul(1e85) //softcap3
@@ -1786,6 +1925,7 @@ addLayer("t", {
             effect(x) {
                 let eff = player.t.dim2gen.add(x).div(20)
                 eff = eff.mul(n(2).pow(x.div(10).floor()))
+                if (hasUpgrade('t', 203)) eff = eff.mul(upgradeEffect('t', 202))
                 if (eff.gte("1.7977e308")) eff = eff.div("1.7977e308").pow(0.5).mul("1.7977e308") //softcap
                 if (eff.max(10).log(10).gte(4000)) eff = ten.pow(eff.max(10).log(10).div(4000).pow(0.5).mul(4000)) //softcap2
                 return eff
@@ -1816,6 +1956,7 @@ addLayer("t", {
             effect(x) {
                 let eff = player.t.dim3gen.add(x).div(40)
                 eff = eff.mul(n(2).pow(x.div(10).floor()))
+                if (hasUpgrade('t', 203)) eff = eff.mul(upgradeEffect('t', 202))
                 if (eff.gte("1.7977e308")) eff = eff.div("1.7977e308").pow(0.5).mul("1.7977e308") //softcap
                 if (eff.max(10).log(10).gte(4000)) eff = ten.pow(eff.max(10).log(10).div(4000).pow(0.5).mul(4000)) //softcap2
                 return eff
@@ -1846,6 +1987,7 @@ addLayer("t", {
             effect(x) {
                 let eff = player.t.dim4gen.add(x).div(80)
                 eff = eff.mul(n(2).pow(x.div(10).floor()))
+                if (hasUpgrade('t', 203)) eff = eff.mul(upgradeEffect('t', 202))
                 if (eff.gte("1.7977e308")) eff = eff.div("1.7977e308").pow(0.5).mul("1.7977e308") //softcap
                 if (eff.max(10).log(10).gte(4000)) eff = ten.pow(eff.max(10).log(10).div(4000).pow(0.5).mul(4000)) //softcap2
                 return eff
@@ -1876,6 +2018,7 @@ addLayer("t", {
             effect(x) {
                 let eff = player.t.dim5gen.add(x).div(160)
                 eff = eff.mul(n(2).pow(x.div(10).floor()))
+                if (hasUpgrade('t', 203)) eff = eff.mul(upgradeEffect('t', 202))
                 if (eff.gte("1.7977e308")) eff = eff.div("1.7977e308").pow(0.5).mul("1.7977e308") //softcap
                 if (eff.max(10).log(10).gte(4000)) eff = ten.pow(eff.max(10).log(10).div(4000).pow(0.5).mul(4000)) //softcap2
                 return eff
@@ -1906,6 +2049,7 @@ addLayer("t", {
             effect(x) {
                 let eff = player.t.dim6gen.add(x).div(320)
                 eff = eff.mul(n(2).pow(x.div(10).floor()))
+                if (hasUpgrade('t', 203)) eff = eff.mul(upgradeEffect('t', 202))
                 if (eff.gte("1.7977e308")) eff = eff.div("1.7977e308").pow(0.5).mul("1.7977e308") //softcap
                 if (eff.max(10).log(10).gte(4000)) eff = ten.pow(eff.max(10).log(10).div(4000).pow(0.5).mul(4000)) //softcap2
                 return eff
@@ -1936,6 +2080,7 @@ addLayer("t", {
             effect(x) {
                 let eff = player.t.dim7gen.add(x).div(640)
                 eff = eff.mul(n(2).pow(x.div(10).floor()))
+                if (hasUpgrade('t', 203)) eff = eff.mul(upgradeEffect('t', 202))
                 if (eff.gte("1.7977e308")) eff = eff.div("1.7977e308").pow(0.5).mul("1.7977e308") //softcap
                 if (eff.max(10).log(10).gte(4000)) eff = ten.pow(eff.max(10).log(10).div(4000).pow(0.5).mul(4000)) //softcap2
                 return eff
@@ -1964,8 +2109,11 @@ addLayer("t", {
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
             effect(x) {
-                let eff = x.div(1280)
+                let ef = one.div(1280)
+                if(hasUpgrade('t',192))ef=n(0.06365)
+                let eff = x.mul(ef)
                 eff = eff.mul(n(2).pow(x.div(10).floor()))
+                if(hasUpgrade('t',202))eff=eff.mul(upgradeEffect('t',202))
                 if (eff.gte("1.7977e308")) eff = eff.div("1.7977e308").pow(0.5).mul("1.7977e308") //softcap
                 if (eff.max(10).log(10).gte(4000)) eff = ten.pow(eff.max(10).log(10).div(4000).pow(0.5).mul(4000)) //softcap2
                 return eff
@@ -1980,10 +2128,13 @@ addLayer("t", {
         91: {
             title: "Tickspeed升级",
             cost(x) {
+                let sp = ten
+                if (hasUpgrade('t', 201)) sp = n(3.473)
+                if (hasUpgrade('t', 205)) sp = n(1.9728)
                 let a = n(1e106)
                 a = a.mul(n(10).pow(x))
                 if(a.gte(1e200))a=a.div(1e200).pow(2).mul(1e200) //scaling
-                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(10)).mul("1.7977e308") //scaling2
+                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(sp)).mul("1.7977e308") //scaling2
                 return a
             },
             display() {
@@ -1995,7 +2146,8 @@ addLayer("t", {
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
             effect(x) {
-                let ef=n(1.125)
+                let ef = n(1.125)
+                if(hasUpgrade('t',191))ef=n(1.13)
                 let eff = ef.pow(x)
                 return eff
             },
@@ -2019,7 +2171,7 @@ addLayer("t", {
         tab:{
             "main":{
                 name(){return 'Time Walls'}, // Name of tab button
-                nameI18N(){return '时间墙'}, // Second name for internationalization (i18n) if internationalizationMod is enabled
+                nameI18N(){return '升级'}, // Second name for internationalization (i18n) if internationalizationMod is enabled
                 content:[
                     'upgrades',
                 ],
@@ -2086,8 +2238,11 @@ addLayer("t", {
        "blank",
        ["microtabs","tab"]
     ],
-    layerShown(){return true},
-})
+    layerShown() { return true },
+    uselsee_function() { alert("关注QqQe308喵，关注QqQe308谢谢喵"); return "关注QqQe308喵，关注QqQe308谢谢喵" }
+/*0.0.0.2版本正好写到这个层级第2221行*/})
+
+
 
 // You can delete the second name from each option if internationalizationMod is not enabled.
 // You can use function i18n(text, otherText) to return text in two different languages. Typically, text is English and otherText is Chinese. If changedDefaultLanguage is true, its reversed

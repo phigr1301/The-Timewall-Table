@@ -40,7 +40,7 @@ var colors = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.0.0.1",
+	num: "0.0.0.2",
 	name: "时间墙",
 }
 
@@ -48,6 +48,9 @@ function changelog(){
 	return i18n(`
 		<br><br><br><h1>更新日志:</h1><br>(不存在<span style='color: red'><s>剧透警告</s></span>)<br><br>
 		<span style="font-size: 17px;">
+			<h3>0.0.0.2 时间墙之始</h3><br>
+				- 不知道写啥<br>
+				- 残局：解锁QqQe308<br><br><br>
 			<h3>0.0.0.1 时间墙之始</h3><br>
 				- 增加了一个层级！<br>
 				- 灵感来源：反物质维度、时间墙树、禁言增量页<br>
@@ -138,6 +141,7 @@ function getPointGen() {
 	if (hasUpgrade("t", 135) && gain.gt(1)) gain = gain.pow(upgradeEffect("t", 134))
 	if (hasUpgrade("t", 141) && gain.gt(1)) gain = gain.pow(1.2)
 	if (hasUpgrade("t", 184) && gain.gt(1)) gain = gain.pow(1.01)
+	if (hasUpgrade("t", 204) && gain.gt(1)) gain = gain.pow(1.035)
 
 
 	if (inChallenge('t', 12)) gain = gain.div(2)
@@ -196,12 +200,12 @@ var displayThings = [
 
 // You can write code here to easily display information in the top-left corner
 function displayThingsRes(){
-	let a = '点数: ' + format(player.points) + ' |  当前残局: 到达1.79e308时间墙<br>'; if (getPointGen().gte(100000)) a += '点数获取已达到软上限1e5，超出部分^' + format(getSoftcap1()) + '!<br>'; if (getPointGen().gte(1e9)) a += '点数获取已达到2重软上限1e9，超出部分^' + format(getSoftcap2()) + '!<br>'; if (getPointGen().gte(1e18)) a += '点数获取已达到3重软上限1e18，超出部分^' + format(getSoftcap3()) + '!<br>'; return a;
+	let a = '点数: ' + format(player.points) + ' |  当前残局: 解锁QqQe308<br>'; if (getPointGen().gte(100000)) a += '点数获取已达到软上限1e5，超出部分^' + format(getSoftcap1()) + '!<br>'; if (getPointGen().gte(1e9)) a += '点数获取已达到2重软上限1e9，超出部分^' + format(getSoftcap2()) + '!<br>'; if (getPointGen().gte(1e18)) a += '点数获取已达到3重软上限1e18，超出部分^' + format(getSoftcap3()) + '!<br>'; if (getPointGen().gte("1.7977e308")) a += '你的点数获取超过无限啦！超出部分^' + format(getSoftcap4()) + '!<br>'; return a;
 }
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.t.points.gte("1.7978e308")
+	return hasUpgrade('t',6002)
 }
 
 function getPointsDisplay(){
