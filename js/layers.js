@@ -16,8 +16,70 @@ addLayer("1layer", {
     tooltip(){return false},
     layerShown(){return layerDisplayTotal(['t'])},// If any layer in the array is unlocked, it will returns true. Otherwise it will return false.
 	tabFormat: [
-        ["display-text", function () { return getPointsDisplay() }], "blank", ["display-text", function () { return "恭喜你找到了这里！但是并没有奖励" + "<br>软上限前的点数获取量：" + format(player.pointgain_unsoftcapped) + "<br>时间墙gainmult：" + format(layers.t.gainMult()) +"<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>0fZI0QRT0hsZ0BxX44sC0BxX0QRT0hsZ0fZI" }],
+        ["display-text", function () { return getPointsDisplay() }], "blank", ["display-text", function () { return "恭喜你找到了这里！但是并没有奖励" + "<br>软上限前的点数获取量：" + format(player.pointgain_unsoftcapped) + "<br>4重软上限后的点数获取量：" + format(player.pointgain_4softcapped) + "<br>时间墙gainmult：" + format(layers.t.gainMult()) + "<br>时间墙gainexp：" + format(layers.t.gainExp()) +"<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>0fZI0QRT0hsZ0BxX44sC0BxX0QRT0hsZ0fZI" }],
     ],
+})
+addLayer("QqQe308bx", {
+    name: "test", // This is optional, only used in a few places, If absent it just uses the layer id
+    symbol: "Test", // This appears on the layer's node. Default is the id with the first letter capitalized
+    symbolI18N: "测试", // Second name of symbol for internationalization (i18n) if internationalizationMod is enabled
+    position: -990, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+    row: 0, // Row the layer is in on the tree (0 is the first row)
+    startData() {
+        return {
+            unlocked: true,
+            points: new Decimal(0),
+        }
+    },
+    tooltip() { return false },
+    color: "#E6E6EC",
+    requires: new Decimal(1), // Can be a function that takes requirement increases into account
+    resource: "点击墙", // Name of prestige currency
+    resourceI18N: "点击墙", // Second name of the resource for internationalization (i18n) if internationalizationMod is enabled
+    baseResource: "测试", // Name of resource prestige is based on
+    baseResourceI18N: "测试", // Second name of the baseResource for internationalization (i18n) if internationalizationMod is enabled
+    baseAmount() { return one }, // Get the current amount of baseResource
+    type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+    exponent: 1, // Prestige currency exponent
+    gainMult() { // Calculate the multiplier for main currency from bonuses
+        mult = one
+        return mult
+    },
+    gainExp() { // Calculate the exponent on main currency from bonuses
+        return one
+    },
+    resetsNothing() {
+        return true
+    },
+    hotkeys: [
+    ],
+    upgrades: {
+        11: {
+            title: "114514",
+            description: "点数获取*0（假的）",
+            cost: function () { return n(0) },
+            unlocked() { return true }
+        },
+    },
+    microtabs: {
+        tab: {
+            "main": {
+                name() { return 'Time Walls' }, // Name of tab button
+                nameI18N() { return '测试' }, // Second name for internationalization (i18n) if internationalizationMod is enabled
+                content: [
+                    'upgrades',
+                ],
+            },
+        },
+    },
+    tabFormat: [
+        ["display-text", function () { return getPointsDisplay() }],
+        "main-display",
+        "prestige-button",
+        "blank",
+        ["microtabs", "tab"]
+    ],
+    layerShown() { return true },
 })
 
 addLayer("t", {
@@ -47,13 +109,14 @@ addLayer("t", {
             dim5gen: zero,
             dim6gen: zero,
             dim7gen: zero,
+            qqq:zero,
         }
     },
     color: "#FFFFFF",
     requires: new Decimal(1), // Can be a function that takes requirement increases into account
-    resource: "Time Wall", // Name of prestige currency
+    resource: "时间墙", // Name of prestige currency
     resourceI18N: "时间墙", // Second name of the resource for internationalization (i18n) if internationalizationMod is enabled
-    baseResource: "points", // Name of resource prestige is based on
+    baseResource: "点数", // Name of resource prestige is based on
     baseResourceI18N: "点数", // Second name of the baseResource for internationalization (i18n) if internationalizationMod is enabled
     baseAmount() { return player.points }, // Get the current amount of baseResource
     type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
@@ -67,14 +130,14 @@ addLayer("t", {
         if (hasUpgrade("t", 45)) mult = mult.mul(upgradeEffect("t", 45))
         if (hasChallenge("t", 12)) mult = mult.mul(n(20).div(9))
         if (hasUpgrade("t", 74)) mult = mult.mul(upgradeEffect("t", 74))
-        if (hasChallenge("t", 21)) mult = mult.pow(1.3)
+        if (hasChallenge("t", 21)&&!getBuyableAmount('t',106).gt(0)) mult = mult.pow(1.3)
         if (player.t.sacrificedforfalse.gt(0) && !inChallenge('t', 22)) mult = mult.mul(player.t.sacrificedforfalse.div(10000).add(1))
-        if (player.t.sacrificedforfsecond.gte(1200000) && !inChallenge('t', 22)) mult = mult.pow(player.t.sacrificedforfsecond.sub(1200000).div(1500000).add(1))
-        if (hasChallenge("t", 22)) mult = mult.pow(1.05)
-        if (hasChallenge("t", 31)) mult = mult.pow(1.35)
+        if (player.t.sacrificedforfsecond.gte(1200000) && !inChallenge('t', 22) && !getBuyableAmount('t', 106).gt(0)) mult = mult.pow(player.t.sacrificedforfsecond.sub(1200000).div(1500000).add(1))
+        if (hasChallenge("t", 22) && !getBuyableAmount('t', 106).gt(0)) mult = mult.pow(1.05)
+        if (hasChallenge("t", 31) && !getBuyableAmount('t', 106).gt(0)) mult = mult.pow(1.35)
         if (getBuyableAmount('t', 33).gt(0)) mult = mult.mul(buyableEffect('t', 33))
         if (getBuyableAmount('t', 52).gt(0)) mult = mult.mul(buyableEffect('t', 52))
-        if (hasUpgrade("t", 134)) mult = mult.pow(upgradeEffect("t", 134))
+        if (hasUpgrade("t", 134) && !getBuyableAmount('t', 106).gt(0)) mult = mult.pow(upgradeEffect("t", 134))
 
         if (hasUpgrade('t', 151)) mult = mult.mul(layers.t.d2Mult())
         if (getBuyableAmount('t', 34).gt(0)&&hasUpgrade('t',155)) mult = mult.mul(buyableEffect('t', 34))
@@ -85,8 +148,33 @@ addLayer("t", {
         if (hasUpgrade('t', 165)) mult = mult.mul(1e6)
 
         mult = mult.mul(buyableEffect('t', 61))
-        if (hasUpgrade('t', 205)) mult = mult.pow(1.065)
+        if (hasUpgrade('t', 205) && !getBuyableAmount('t', 106).gt(0)) mult = mult.pow(1.065)
         return mult
+    },
+    gainExp() { // Calculate the exponent on main currency from bonuses
+        if (!hasUpgrade('t', 11)) return ten.add(ten)
+        mult = one
+        if (hasChallenge("t", 21) && getBuyableAmount('t', 106).gt(0)) mult = mult.mul(1.3)
+        if (player.t.sacrificedforfsecond.gte(1200000) && !inChallenge('t', 22) && getBuyableAmount('t', 106).gt(0)) mult = mult.mul(player.t.sacrificedforfsecond.sub(1200000).div(1500000).add(1))
+        if (hasChallenge("t", 22) && getBuyableAmount('t', 106).gt(0)) mult = mult.mul(1.05)
+        if (hasChallenge("t", 31) && getBuyableAmount('t', 106).gt(0)) mult = mult.mul(1.35)
+        if (hasUpgrade("t", 134) && getBuyableAmount('t', 106).gt(0)) mult = mult.mul(upgradeEffect("t", 134))
+        if (hasUpgrade('t', 205) && getBuyableAmount('t', 106).gt(0)) mult = mult.mul(1.065)
+        if (hasUpgrade('t', 252)) mult = mult.add(0.5)
+        return mult
+    },
+    QqQeffect() {
+        let eff = player.t.qqq.mul(0.1).add(1)
+        if (getBuyableAmount('t', 105).gt(0)) eff = player.t.qqq.pow(1.111).mul(0.1).add(1)
+        if(eff.gte(2))eff=eff.div(2).pow(0.2085).mul(2)
+        return eff
+    },
+    QqQeffect2() {
+        if(!hasUpgrade('t',234))return one
+        let eff = player.t.qqq.mul(0.04).add(1)
+        if (eff.gte(1.35)) eff = eff.div(1.35).pow(0.4170).mul(1.35)
+        if (eff.gte(3)) eff = eff.div(3).pow(0.2085).mul(3)
+        return eff
     },
     designantMult() {
         let dmult = one
@@ -112,11 +200,10 @@ addLayer("t", {
         if (hasUpgrade("t", 212)) dmult = dmult.mul(1e18)
         if (hasUpgrade("t", 213)) dmult = dmult.pow(1.0419)
         if (hasUpgrade("t", 214)) dmult = dmult.pow(1.2085)
+        if (getBuyableAmount('t', 102).gt(0)) dmult = dmult.pow(buyableEffect('t', 102))
+
+        dmult=dmult.pow(layers.t.QqQeffect2())
         return dmult
-    },
-    gainExp() { // Calculate the exponent on main currency from bonuses
-        if (hasUpgrade('t', 11)) return one
-        return ten.add(ten)
     },
     passiveGeneration() {
         let a = zero
@@ -1006,7 +1093,7 @@ addLayer("t", {
         },
         201: {
             title: "201",
-            description: "Tickspeed升级数量提升减弱软上限可购买的上限，减弱Tickspeed价格增长速率",
+            description: "Tickspeed更便宜且其购买数量提升减弱软上限可购买的上限",
             effect() {
                 let eff = getBuyableAmount('t', 91).sub(70).div(30).max(0).floor()
                 eff=eff.min(8)
@@ -1081,6 +1168,102 @@ addLayer("t", {
             cost: function () { return new Decimal("5.55e555") },
             unlocked() { return hasUpgrade('t', 215) }
         },
+        222: {
+            title: "222",
+            description: "解锁更多QqQe308升级",
+            cost: function () { return new Decimal("6.66e666") },
+            unlocked() { return getBuyableAmount('t',101).gt(0) }
+        },
+        223: {
+            title: "223",
+            description: "QqQe308重置的点数需求除以1e40",
+            cost: function () { return new Decimal("1e690") },
+            unlocked() { return hasUpgrade('t', 222) }
+        },
+        224: {
+            title: "224",
+            description: "点数第四重软上限指数+0.1",
+            cost: function () { return new Decimal("1e695") },
+            unlocked() { return hasUpgrade('t', 223) }
+        },
+        225: {
+            title: "225",
+            description: "除第一维度外，所有维度和Tickspeed价格大幅下降",
+            cost: function () { return new Decimal("1e698") },
+            unlocked() { return hasUpgrade('t', 224) }
+        },
+        231: {
+            title: "231",
+            description: "更改QqQe308价格的公式",
+            cost: function () { return new Decimal("1e2250") },
+            unlocked() { return hasUpgrade('t', 225) }
+        },
+        232: {
+            title: "232",
+            description: "可购买“减弱软上限2”可以多购买1个（有啥用呢）",
+            cost: function () { return new Decimal("1e2300") },
+            unlocked() { return hasUpgrade('t', 231) }
+        },
+        233: {
+            title: "233",
+            description: "点数基础获取+1e40（有啥用呢）",
+            cost: function () { return new Decimal("1e2305") },
+            unlocked() { return hasUpgrade('t', 232) }
+        },
+        234: {
+            title: "234",
+            description: "解锁QqQe308的第二个效果",
+            cost: function () { return new Decimal("1e2323") },
+            unlocked() { return hasUpgrade('t', 233) }
+        },
+        235: {
+            title: "235",
+            description: "解锁一个普通挑战",
+            cost: function () { return new Decimal("1e2470") },
+            unlocked() { return hasUpgrade('t', 234) }
+        },
+        241: {
+            title: "241",
+            description: "去除点数获取的第一重软上限",
+            cost: function () { return new Decimal("1e2963") },
+            unlocked() { return hasUpgrade('t', 235) }
+        },
+        242: {
+            title: "242",
+            description: "去除点数获取的第二重软上限",
+            cost: function () { return new Decimal("1e3072") },
+            unlocked() { return hasUpgrade('t', 241) }
+        },
+        243: {
+            title: "243",
+            description: "去除点数获取的第三重软上限（？？？？",
+            cost: function () { return new Decimal("1e3350") },
+            unlocked() { return hasUpgrade('t', 242) }
+        },
+        244: {
+            title: "244",
+            description: "设计蚂蚁^2冷却-4.85s",
+            cost: function () { return new Decimal("1e3550") },
+            unlocked() { return hasUpgrade('t', 243) }
+        },
+        245: {
+            title: "245",
+            description: "点数基础获取+1e75",
+            cost: function () { return new Decimal("3.55e3555") },
+            unlocked() { return hasUpgrade('t', 244) }
+        },
+        251: {
+            title: "251",
+            description: "点数^3",
+            cost: function () { return new Decimal("6.59e3571") },
+            unlocked() { return hasUpgrade('t', 245) }
+        },
+        252: {
+            title: "252",
+            description: "时间墙gainexp在最后+0.5",
+            cost: function () { return new Decimal("8.34e3835") },
+            unlocked() { return hasUpgrade('t', 251) }
+        },
         6001: {
             title: "22",
             titleI18N: "F-01", // Second name of title for internationalization (i18n) if internationalizationMod is enabled
@@ -1102,14 +1285,14 @@ addLayer("t", {
             titleI18N: "F-03", // Second name of title for internationalization (i18n) if internationalizationMod is enabled
             description: "",
             descriptionI18N: "在时间墙维度中解锁时间墙星系", // Second name of description for internationalization (i18n) if internationalizationMod is enabled
-            cost: function () { return new Decimal("1e5000") },
+            cost: function () { return new Decimal("1e4500") },
             unlocked() { return hasUpgrade('t', 25) }
         },
         6004: {
             title: "22",
             titleI18N: "F-04", // Second name of title for internationalization (i18n) if internationalizationMod is enabled
             description: "",
-            descriptionI18N: "解锁天神（Celestials）页面", // Second name of description for internationalization (i18n) if internationalizationMod is enabled
+            descriptionI18N: "解锁天神页面", // Second name of description for internationalization (i18n) if internationalizationMod is enabled
             cost: function () { if (hasChallenge('t', 21)) return new Decimal("3.07e8686").div(player.points.add(1).pow(100).min("3.07e686")); return new Decimal("3.07e8686"); },
             unlocked() { return hasUpgrade('t', 25) }
         },
@@ -1136,6 +1319,12 @@ addLayer("t", {
             descriptionI18N: "在设计蚂蚁页面永久显示设计蚂蚁视频", // Second name of description for internationalization (i18n) if internationalizationMod is enabled
             cost: function () { return new Decimal("0") },
             unlocked() { return player.t.designanttotal.gte(100000) }
+        },
+        9903: {
+            title: "解锁剧情",
+            description: "没做呢",
+            cost: function () { return new Decimal("0") },
+            unlocked() { return hasChallenge('t',41) }
         },
         9991: {
             title: "Time Walls",
@@ -1177,7 +1366,7 @@ addLayer("t", {
         22: {
             name: "c4",
             nameI18N: "普通挑战4",
-            challengeDescription: "点数^0.5，大幅增强部分升级的软上限，禁用献祭效果<br>",
+            challengeDescription: "点数^0.5，大幅增强部分升级的软上限，禁用裂缝效果<br>",
             canComplete() { return player.points.gte(2000) },
             goalDescription: "2000点数",
             rewardDescription() { return "升级31的效果再x4，时间墙获取^1.05" },
@@ -1205,6 +1394,16 @@ addLayer("t", {
             rewardDescription() { return "实际生效的总蚂蚁数量^1.5，优化升级“设计蚂蚁 BYD”" },
             unlocked() { return getBuyableAmount('t', 12).gte(2.9) },
         },
+        41: {
+            name: "c7",
+            nameI18N: "普通挑战7",
+            challengeDescription: "你同时在挑战4和挑战6中，点数^0.25<br>",
+            canComplete() { return player.points.gte(3e67) },
+            goalDescription: "3e67点数",
+            countsAs: [22, 32],
+            rewardDescription() { return "QqQe308价格大幅下降" },
+            unlocked() { return hasUpgrade('t', 235) },
+        },
     },
     bars: {
         sacr1: {
@@ -1217,7 +1416,7 @@ addLayer("t", {
             },
             fillStyle: { 'background-color': "#FF0000" },
             progress() { return this.req() },
-            display() { let a = "解锁伪·时间之神需要献祭" + format(player.t.sacrificedforfalse, 2) + "/30000点数<br>献祭效果：1.时间墙获取x" + (inChallenge('t', 22) ? "1.00" : format(player.t.sacrificedforfalse.div(10000).add(1))); if (player.t.sacrificedforfalse.gte(20000)) a = a + "<br>2.点数获取x" + (inChallenge('t', 22) ? "1.00" : format(player.t.sacrificedforfalse.sub(20000).div(10000).add(1))); if (player.t.sacrificedforfalse.gte(30000)) a = a + (inChallenge('t', 22) ? "<br>3.点数获取^1.00" : "<br>3.点数获取^1.20"); return a; },
+            display() { let a = "解锁伪·时间之神需要" + format(player.t.sacrificedforfalse, 2) + "/30000点数<br>效果：1.时间墙获取x" + (inChallenge('t', 22) ? "1.00" : format(player.t.sacrificedforfalse.div(10000).add(1))); if (player.t.sacrificedforfalse.gte(20000)) a = a + "<br>2.点数获取x" + (inChallenge('t', 22) ? "1.00" : format(player.t.sacrificedforfalse.sub(20000).div(10000).add(1))); if (player.t.sacrificedforfalse.gte(30000)) a = a + (inChallenge('t', 22) ? "<br>3.点数获取^1.00" : "<br>3.点数获取^1.20"); return a; },
         },
         sacr2: {
             direction: RIGHT,
@@ -1229,7 +1428,7 @@ addLayer("t", {
             },
             fillStyle: { 'background-color': "#FF0000" },
             progress() { return this.req() },
-            display() { let a = "解锁第二个可购买需要献祭" + format(player.t.sacrificedforfsecond, 2) + "/1.5e6点数<br>献祭效果：4.第一个可购买的效果x" + (inChallenge('t', 22) ? "1.00" : format(player.t.sacrificedforfsecond.div(7500000).add(1))); if (player.t.sacrificedforfsecond.gte(1200000)) a = a + "<br>5.时间墙获取^" + (inChallenge('t', 22) ? "1.00" : format(player.t.sacrificedforfsecond.sub(1200000).div(1500000).add(1))); return a; },
+            display() { let a = "解锁第二个可购买需要" + format(player.t.sacrificedforfsecond, 2) + "/1.5e6点数<br>效果：4.第一个可购买的效果x" + (inChallenge('t', 22) ? "1.00" : format(player.t.sacrificedforfsecond.div(7500000).add(1))); if (player.t.sacrificedforfsecond.gte(1200000)) a = a + "<br>5.时间墙获取^" + (inChallenge('t', 22) ? "1.00" : format(player.t.sacrificedforfsecond.sub(1200000).div(1500000).add(1))); return a; },
             unlocked() { return getBuyableAmount('t', 11).gte(10) }
         },
     },
@@ -1242,11 +1441,21 @@ addLayer("t", {
         let cd = n(180)
         if (getBuyableAmount('t', 31).gt(0) && hasUpgrade('t', 144)) cd = cd.sub(buyableEffect('t', 31))
         if (hasUpgrade('t', 145)) cd = cd.div(30)
+        if (hasUpgrade('t', 244)) cd = cd.sub(4.85)
         return cd
+    },
+    qqqResetreq() {
+        let a = n(1e10).pow(player.t.qqq.pow(2).add(player.t.qqq).div(2)).mul(1e200)
+        if (hasUpgrade('t', 231)) a = n(1e10).pow(player.t.qqq.pow(1.75).add(player.t.qqq.pow(0.875)).div(2)).mul(1e200)
+        if (hasChallenge('t', 41)) a = n(1e7).pow(player.t.qqq.pow(1.6).add(player.t.qqq.pow(0.8)).div(2))
+        if (hasUpgrade('t', 223)) a = a.div(1e40)
+        if (getBuyableAmount('t', 104).gt(0)) a = a.pow(buyableEffect('t', 104))
+        if (getBuyableAmount('t', 104).gt(0)) a = a.div(layers.t.buyables[104].effect2())
+        return a
     },
     clickables: {
         11: {
-            title() { return "<h4>献祭你的点数</h4><br>每秒献祭5%的当前点数<br>当前：已"+((player.t.sacr||player.t.sacrsecond)?"开启":"关闭") },
+            title() { return "<h4>填充点数</h4><br>每秒填充5%的当前点数<br>当前：已"+((player.t.sacr||player.t.sacrsecond)?"开启":"关闭") },
             canClick() { return true },
             onClick() {
                 if (player.t.sacrificedforfalse.gte(30000)) player.t.sacrsecond = !player.t.sacrsecond
@@ -1274,6 +1483,16 @@ addLayer("t", {
             },
             style() { return { 'background-color': "#FFFFFF", filter: "brightness(100%)", 'border-radius': "15px", height: "160px", width: "240px" } },
             unlocked() { return hasUpgrade('t',142) },
+        },
+        21: {
+            title() { return "<h4>重置以获得1只QqQe308</h4><br>需要" + format(layers.t.qqqResetreq()) + "点数" },
+            canClick() { return player.points.gte(layers.t.qqqResetreq()) },
+            onClick() {
+                player.points = zero
+                player.t.qqq=player.t.qqq.add(1)
+            },
+            style() { return { 'background-color': "#FFFFFF", filter: "brightness(100%)", 'border-radius': "15px", height: "160px", width: "240px" } },
+            unlocked() { return getBuyableAmount('t',101).gt(0) },
         },
     },
     getDesignantEffect() {
@@ -1390,6 +1609,7 @@ addLayer("t", {
                 if (x.gte(67)) a = n("1e350")
                 if (x.gte(68)) a = n("1e400")
                 if (x.gte(69)) a = n("1e500")
+                if (x.gte(70)) a = n("1e2300")
                 return a
             },
             display() {
@@ -1408,7 +1628,8 @@ addLayer("t", {
             purchaseLimit() {
                 let max = n(20)
                 if (getBuyableAmount('t', 46).gt(0)) max = max.add(30)
-                if (hasUpgrade('t',162)) max = max.add(20)
+                if (hasUpgrade('t', 162)) max = max.add(20)
+                if (hasUpgrade('t', 232)) max = max.add(1)
                 return max
             },
             unlocked() { return hasUpgrade('t',101) },
@@ -1758,8 +1979,8 @@ addLayer("t", {
             },
             canAfford() { return player.t.designants.gte(this.cost()) },
             effect(x) {
-                let eff = n(15.62)
-                eff = eff.max(1).min(16.39)
+                let eff = n(15.81)
+                eff = eff.max(1).min(16.80)
                 return eff
             },
             buy() {
@@ -1909,9 +2130,11 @@ addLayer("t", {
         62: {
             title: "第二时间墙维度",
             cost(x) {
+                let scal = two
+                if (hasUpgrade('t', 225)) scal = n(1.15)
                 let a = n(1e101)
                 a = a.mul(n(2000).pow(x.div(10).floor()))
-                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(2)).mul("1.7977e308") //scaling
+                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(scal)).mul("1.7977e308") //scaling
                 return a
             },
             display() {
@@ -1940,9 +2163,11 @@ addLayer("t", {
         63: {
             title: "第三时间墙维度",
             cost(x) {
+                let scal = three
+                if (hasUpgrade('t', 225)) scal = n(1.3)
                 let a = n(2e102)
                 a = a.mul(n(40000).pow(x.div(10).floor()))
-                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(3)).mul("1.7977e308") //scaling
+                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(scal)).mul("1.7977e308") //scaling
                 return a
             },
             display() {
@@ -1971,9 +2196,11 @@ addLayer("t", {
         71: {
             title: "第四时间墙维度",
             cost(x) {
+                let scal = four
+                if (hasUpgrade('t', 225)) scal = n(1.45)
                 let a = n(3e104)
                 a = a.mul(n("1e6").pow(x.div(10).floor()))
-                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(4)).mul("1.7977e308") //scaling
+                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(scal)).mul("1.7977e308") //scaling
                 return a
             },
             display() {
@@ -2002,9 +2229,11 @@ addLayer("t", {
         72: {
             title: "第五时间墙维度",
             cost(x) {
+                let scal = five
+                if(hasUpgrade('t',225))scal=n(1.6)
                 let a = n(1e110)
                 a = a.mul(n("3e8").pow(x.div(10).floor()))
-                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(5)).mul("1.7977e308") //scaling
+                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(scal)).mul("1.7977e308") //scaling
                 return a
             },
             display() {
@@ -2033,9 +2262,11 @@ addLayer("t", {
         73: {
             title: "第六时间墙维度",
             cost(x) {
+                let scal = six
+                if (hasUpgrade('t', 225)) scal = n(1.75)
                 let a = n(1e122)
                 a = a.mul(n("1e11").pow(x.div(10).floor()))
-                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(6)).mul("1.7977e308") //scaling
+                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(scal)).mul("1.7977e308") //scaling
                 return a
             },
             display() {
@@ -2064,9 +2295,11 @@ addLayer("t", {
         81: {
             title: "第七时间墙维度",
             cost(x) {
+                let scal = seven
+                if (hasUpgrade('t', 225)) scal = n(1.9)
                 let a = n(1e130)
                 a = a.mul(n("1e14").pow(x.div(10).floor()))
-                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(7)).mul("1.7977e308") //scaling
+                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(scal)).mul("1.7977e308") //scaling
                 return a
             },
             display() {
@@ -2095,9 +2328,11 @@ addLayer("t", {
         82: {
             title: "第八时间墙维度",
             cost(x) {
+                let scal = eight
+                if (hasUpgrade('t', 225)) scal = n(2.05)
                 let a = n(1e145)
                 a = a.mul(n("1e18").pow(x.div(10).floor()))
-                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(8)).mul("1.7977e308") //scaling
+                if (a.gte("1.7977e308")) a = a.div("1.7977e308").pow(a.log(10).div(308.25).pow(scal)).mul("1.7977e308") //scaling
                 return a
             },
             display() {
@@ -2131,6 +2366,7 @@ addLayer("t", {
                 let sp = ten
                 if (hasUpgrade('t', 201)) sp = n(3.473)
                 if (hasUpgrade('t', 205)) sp = n(1.9728)
+                if (hasUpgrade('t', 225)) sp = n(0.8)
                 let a = n(1e106)
                 a = a.mul(n(10).pow(x))
                 if(a.gte(1e200))a=a.div(1e200).pow(2).mul(1e200) //scaling
@@ -2157,6 +2393,173 @@ addLayer("t", {
             },
             unlocked() { return hasUpgrade('t',172) },
             style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "200px", width: "200px" } },
+        },
+        101: {
+            title: "QqQU1",
+            cost(x) {
+                let a = zero
+                return a
+            },
+            display() {
+                return "解锁QqQe308重置<br>价格: " + format(this.cost()) + "只QqQe308"
+            },
+            canAfford() { return player.t.qqq.gte(this.cost()) },
+            buy() {
+                player.t.qqq = player.t.qqq.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            purchaseLimit() {
+                let max = one
+                return max
+            },
+            unlocked() { return hasUpgrade('t',6002) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "120px" } },
+        },
+        102: {
+            title: "QqQU2",
+            cost(x) {
+                let a = four
+                return a
+            },
+            display() {
+                return "基于QqQe308增益蚂蚁^2获取量<br>价格: " + format(this.cost()) + "只QqQe308<br>效果: 蚂蚁^2获取量^" + format(this.effect())
+            },
+            canAfford() { return player.t.qqq.gte(this.cost()) },
+            buy() {
+                player.t.qqq = player.t.qqq.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let eff = player.t.qqq.pow(0.75).mul(0.05).add(1)
+                if(eff.gte(1.5))eff=eff.div(1.5).pow(0.3).mul(1.5)
+                return eff
+            },
+            purchaseLimit() {
+                let max = one
+                return max
+            },
+            unlocked() { return hasUpgrade('t', 222) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "120px" } },
+        },
+        103: {
+            title: "QqQU3",
+            cost(x) {
+                let a = six
+                return a
+            },
+            display() {
+                return "基于QqQe308削弱点数第四层软上限<br>价格: " + format(this.cost()) + "只QqQe308<br>效果: 软上限指数+" + format(this.effect())
+            },
+            canAfford() { return player.t.qqq.gte(this.cost()) },
+            buy() {
+                player.t.qqq = player.t.qqq.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let eff = player.t.qqq.pow(0.8).mul(0.03)
+                eff=eff.min(0.45)
+                return eff
+            },
+            purchaseLimit() {
+                let max = one
+                return max
+            },
+            unlocked() { return hasUpgrade('t', 222) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "120px" } },
+        },
+        104: {
+            title: "QqQU4",
+            cost(x) {
+                let a = n("1e329")
+                return a
+            },
+            display() {
+                return "基于时间墙减少QqQe308需求<br>价格: " + format(this.cost()) + "点数<br>效果: 需求^" + format(this.effect()) + "且/" + format(this.effect2())
+            },
+            canAfford() { return player.points.gte(this.cost()) },
+            buy() {
+                player.points = player.points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect(x) {
+                let eff = one.sub(player.t.points.max(1).pow(0.0001).sub(1).div(10))
+                eff = eff.max(0.7)
+                return eff
+            },
+            effect2() {
+                let eff = player.t.points.max(1).pow(0.05)
+                eff=eff.min(1e50)
+                return eff
+            },
+            purchaseLimit() {
+                let max = one
+                return max
+            },
+            unlocked() { return hasUpgrade('t', 222) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "120px" } },
+        },
+        105: {
+            title: "QqQU5",
+            cost(x) {
+                let a = seven
+                return a
+            },
+            display() {
+                return "更改QqQe308对点数加成的公式<br>价格: " + format(this.cost()) + "只QqQe308"
+            },
+            canAfford() { return player.t.qqq.gte(this.cost()) },
+            buy() {
+                player.t.qqq = player.t.qqq.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            purchaseLimit() {
+                let max = one
+                return max
+            },
+            unlocked() { return hasUpgrade('t', 222) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "120px" } },
+        },
+        106: {
+            title: "QqQU6",
+            cost(x) {
+                let a = n("1e350")
+                return a
+            },
+            display() {
+                return "所有对时间墙gainmult进行指数运算的效果改为对gainexp进行乘数运算（没啥用）<br>价格: " + format(this.cost()) + "点数"
+            },
+            canAfford() { return player.points.gte(this.cost()) },
+            buy() {
+                player.points = player.points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            purchaseLimit() {
+                let max = one
+                return max
+            },
+            unlocked() { return hasUpgrade('t', 222) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "120px" } },
+        },
+        107: {
+            title: "QqQU7",
+            cost(x) {
+                let a = n(31)
+                return a
+            },
+            display() {
+                return "点数^1.8<br>价格: " + format(this.cost()) + "只QqQe308"
+            },
+            canAfford() { return player.t.qqq.gte(this.cost()) },
+            buy() {
+                player.t.qqq = player.t.qqq.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            purchaseLimit() {
+                let max = one
+                return max
+            },
+            unlocked() { return hasUpgrade('t', 222) },
+            style() { return { filter: "brightness(100%)", 'border-radius': "15px", height: "120px", width: "120px" } },
         },
     },
     hotkeys: [
@@ -2188,6 +2591,7 @@ addLayer("t", {
                 name() { return 'Nothing' },
                 nameI18N() { return 'QqQe308' },
                 content: [
+                    ["display-text", function () { let a = "你有" + format(player.t.qqq) + "只QqQe308，增益点数获取^" + format(layers.t.QqQeffect()); if (hasUpgrade('t', 234)) a = a + "，并使蚂蚁^2获取^" + format(layers.t.QqQeffect2()); a = a + "！"; return a; }], "blank", ["clickable", 21], "blank", ["row", [["buyable", 101], ["buyable", 102], ["buyable", 103], ["buyable", 104], ["buyable", 105], ["buyable", 106], ["buyable", 107]]],
                 ],
                 unlocked() { return hasUpgrade("t", 6002) },
             },

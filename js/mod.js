@@ -40,7 +40,7 @@ var colors = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.0.0.2",
+	num: "0.0.0.3",
 	name: "时间墙",
 }
 
@@ -48,6 +48,9 @@ function changelog(){
 	return i18n(`
 		<br><br><br><h1>更新日志:</h1><br>(不存在<span style='color: red'><s>剧透警告</s></span>)<br><br>
 		<span style="font-size: 17px;">
+			<h3>0.0.0.3 时间墙之始</h3><br>
+				- 不知道写啥<br>
+				- 残局：解锁时间墙星系，e2221只蚂蚁^2<br><br><br>
 			<h3>0.0.0.2 时间墙之始</h3><br>
 				- 不知道写啥<br>
 				- 残局：解锁QqQe308<br><br><br>
@@ -105,6 +108,8 @@ function getPointGen() {
 	if (hasUpgrade('t', 111)) gain = gain.add(0.05)
 	if (getBuyableAmount('t', 56).gt(0)) gain = gain.add(2085)
 	if (hasUpgrade('t', 163)) gain = gain.add(1e6)
+	if (hasUpgrade('t', 233)) gain = gain.add(1e40)
+	if (hasUpgrade('t', 245)) gain = gain.add(1e75)
 
 	if (hasUpgrade('t', 21)) gain = gain.mul(1.25)
 	if (hasUpgrade('t', 22)) gain = gain.mul(1.25)
@@ -142,19 +147,30 @@ function getPointGen() {
 	if (hasUpgrade("t", 141) && gain.gt(1)) gain = gain.pow(1.2)
 	if (hasUpgrade("t", 184) && gain.gt(1)) gain = gain.pow(1.01)
 	if (hasUpgrade("t", 204) && gain.gt(1)) gain = gain.pow(1.035)
+	if (hasUpgrade("t", 6002) && gain.gt(1)) gain = gain.pow(layers.t.QqQeffect())
+	if (getBuyableAmount('t', 107).gt(0) && gain.gt(1)) gain = gain.pow(1.8)
+	if (hasUpgrade("t", 251) && gain.gt(1)) gain = gain.pow(3)
 
 
 	if (inChallenge('t', 12)) gain = gain.div(2)
 	if (inChallenge('t', 22)) gain = gain.pow(0.5)
 	if (inChallenge('t', 31)) gain = gain.pow(player.t.c5Effect)
+	if (inChallenge('t', 41)) gain = gain.pow(0.25)
 
 
 	player.pointgain_unsoftcapped = gain
 
-	if (gain.gte(100000)) gain = gain.div(100000).pow(getSoftcap1()).mul(100000)
-	if (gain.gte(1e9)) gain = gain.div(1e9).pow(getSoftcap2()).mul(1e9)
-	if (gain.gte(1e18)) gain = gain.div(1e18).pow(getSoftcap3()).mul(1e18)
+	if (gain.gte(100000)&&!hasUpgrade('t',241)) gain = gain.div(100000).pow(getSoftcap1()).mul(100000)
+	if (gain.gte(1e9) && !hasUpgrade('t', 242)) gain = gain.div(1e9).pow(getSoftcap2()).mul(1e9)
+	if (gain.gte(1e18) && !hasUpgrade('t', 243)) gain = gain.div(1e18).pow(getSoftcap3()).mul(1e18)
 	if (gain.gte("1.7977e308")) gain = gain.div("1.7977e308").pow(getSoftcap4()).mul("1.7977e308")
+
+
+	player.pointgain_4softcapped = gain
+
+
+	if (gain.log10().gte(500)) gain = ten.pow(gain.log10().div(500).pow(getSoftcap5()).mul(500))
+	if (gain.log10().gte(2000)) gain = ten.pow(gain.log10().div(2000).pow(getSoftcap6()).mul(2000))
 	return gain
 }
 
@@ -180,7 +196,17 @@ function getSoftcap3() {
 }
 function getSoftcap4() {
 	let sc4 = new Decimal(0.05)
+	if (getBuyableAmount('t', 103).gt(0)) sc4 = sc4.add(buyableEffect('t', 103))
+	if (hasUpgrade('t', 224)) sc4 = sc4.add(0.1)
 	return sc4
+}
+function getSoftcap5() {
+	let sc5 = new Decimal(0.75)
+	return sc5
+}
+function getSoftcap6() {
+	let sc6 = new Decimal(0.25)
+	return sc6
 }
 
 // You can add non-layer related variables that should to into "player" and be saved here, along with default values
@@ -188,6 +214,7 @@ function addedPlayerData() {
 	return {
 		devMode: "Antimatter",
 		pointgain_unsoftcapped: zero,
+		pointgain_4softcapped: zero,
 }}
 
 // Display extra information at the top of the page
@@ -200,12 +227,12 @@ var displayThings = [
 
 // You can write code here to easily display information in the top-left corner
 function displayThingsRes(){
-	let a = '点数: ' + format(player.points) + ' |  当前残局: 解锁QqQe308<br>'; if (getPointGen().gte(100000)) a += '点数获取已达到软上限1e5，超出部分^' + format(getSoftcap1()) + '!<br>'; if (getPointGen().gte(1e9)) a += '点数获取已达到2重软上限1e9，超出部分^' + format(getSoftcap2()) + '!<br>'; if (getPointGen().gte(1e18)) a += '点数获取已达到3重软上限1e18，超出部分^' + format(getSoftcap3()) + '!<br>'; if (getPointGen().gte("1.7977e308")) a += '你的点数获取超过无限啦！超出部分^' + format(getSoftcap4()) + '!<br>'; return a;
+	let a = '点数: ' + format(player.points) + ' |  当前残局: 解锁时间墙星系'; if (isEndgame()) a += " |  你通关了当前版本！"; a += "<br>"; if (getPointGen().gte(100000) && !hasUpgrade('t', 241)) a += '点数获取已达到软上限1e5，超出部分^' + format(getSoftcap1()) + '!<br>'; if (getPointGen().gte(1e9) && !hasUpgrade('t', 242)) a += '点数获取已达到2重软上限1e9，超出部分^' + format(getSoftcap2()) + '!<br>'; if (getPointGen().gte(1e18) && !hasUpgrade('t', 243)) a += '点数获取已达到3重软上限1e18，超出部分^' + format(getSoftcap3()) + '!<br>'; if (getPointGen().gte("1.7977e308")) a += '你的点数获取超过无限啦！超出部分^' + format(getSoftcap4()) + '!<br>'; if (getPointGen().gte("1e500")) a += '不行，膨胀太快了，必须限制一下了，点数获取超过1e500的部分指数^' + format(getSoftcap5()) + '!<br>'; if (getPointGen().gte("1e2000")) a += '膨胀还是太快了，点数获取超1e2000的部分指数^' + format(getSoftcap6()) + '!<br>'; return a;
 }
 
 // Determines when the game "ends"
 function isEndgame() {
-	return hasUpgrade('t',6002)
+	return hasUpgrade('t',6003)
 }
 
 function getPointsDisplay(){
